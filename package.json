@@ -12,6 +12,9 @@
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "postinstall": "prisma generate"
   },
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
   "engines": {
     "node": ">=20.0.0"
   },

@@ -1,5 +1,10 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# 개인 IDE 설정 파일
+.idea
+.vscode
 
-/generated/prisma
+# 환경 변수 파일
+.env
+.env.*.local
+
+# 빌드 출력물
+/node_modules/
