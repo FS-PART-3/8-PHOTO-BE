@@ -1,0 +1,10 @@
+// 각자 입맛에 맞게 변경해서 사용하기.
+### 교환 제안
+POST http://localhost:4000/api/exchanges
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "targetProductId": "abc123",
+  "myProductId": "def456"
+}

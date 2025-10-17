@@ -1,0 +1,4 @@
+// 각자 입맛에 맞게 변경해서 사용하기.
+### 포인트 랜덤 상자 열기
+POST http://localhost:4000/api/points/open
+Authorization: Bearer {{accessToken}}

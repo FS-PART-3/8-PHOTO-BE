@@ -1,0 +1,14 @@
+// 각자 입맛에 맞게 변경해서 사용하기.
+### 상품 등록
+POST http://localhost:4000/api/products
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "포토카드 A",
+  "price": 1000,
+  "description": "테스트 상품"
+}
+
+### 상품 목록
+GET http://localhost:4000/api/products?page=1&orderBy=recent
