@@ -12,3 +12,208 @@ datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
 }
+
+model User {
+    id           String        @id
+    providerId   String?       @unique
+    providerType ProviderType? @default(EMAIL)
+
+    email        String  @unique
+    name         String
+    password     String?
+    refreshtoken String
+
+    isDeleted Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    myPhotoCards   MyPhotoCard[]
+    listings       Listing[]
+    transactions   Transaction[]
+    exchangeOffers ExchangeOffer[]
+    points         Point[]
+    notifications  Notification[]
+    histories      History[]
+}
+
+enum ProviderType {
+    EMAIL
+    GOOGLE
+}
+
+enum Grade {
+    COMMON
+    RARE
+    SUPERRARE
+    LEGENDARY
+}
+
+enum Genre {
+    풍경
+    인물
+    도시
+    자연
+}
+
+model MyPhotoCard {
+    id     String @id
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    title       String
+    grade       Grade
+    genre       Genre
+    price       Int
+    quantity    Int
+    imgUrl      String
+    description String
+
+    isDeleted Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    listings Listing[]
+}
+
+enum ListingStatus {
+    FOR_SALE
+    FOR_EXCHANGE
+    SOLD_OUT
+    CANCELLED
+}
+
+model Listing {
+    id            String      @id
+    seller        User        @relation(fields: [sellerId], references: [id])
+    sellerId      String
+    myPhotoCard   MyPhotoCard @relation(fields: [myPhotoCardId], references: [id])
+    myPhotoCardId String
+
+    price    Int
+    quantity Int
+    status   ListingStatus @default(FOR_SALE)
+
+    preferredGrade       Grade
+    preferredGenre       String
+    preferredDescription String
+
+    isDeleted Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    transactions   Transaction[]
+    exchangeOffers ExchangeOffer[]
+}
+
+model Transaction {
+    id        String  @id
+    buyer     User    @relation(fields: [buyerId], references: [id])
+    buyerId   String
+    listing   Listing @relation(fields: [listingId], references: [id])
+    listingId String
+
+    totalAmount Int
+    quantity    Int
+
+    createdAt DateTime @default(now())
+}
+
+enum OfferStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    CANCELLED
+}
+
+model ExchangeOffer {
+    id          String  @id
+    listing     Listing @relation(fields: [listingId], references: [id])
+    listingId   String
+    offeredBy   User    @relation(fields: [offeredById], references: [id])
+    offeredById String
+
+    offeredDescription String
+    status             OfferStatus @default(PENDING)
+
+    isDeleted Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum PointReason {
+    PURCHASE
+    SALE
+    RANDOM_BOX_REWARD
+    ADMIN_ADJUSTMENT
+}
+
+model Point {
+    id        String      @id
+    user      User        @relation(fields: [userId], references: [id])
+    userId    String
+    amount    Int
+    reason    PointReason
+    createdAt DateTime    @default(now())
+}
+
+enum NotificationType {
+    EXCHANGE_PROPOSED // 포토 카드 교환 제안 알림
+    EXCHANGE_ACCEPTED // 교환 성사 알림
+    EXCHANGE_REJECTED // 교환 거절 알림
+    PURCHASE_COMPLETED // 구매 완료 알림
+    SALE_COMPLETED // 판매 성사 알림
+    SOLD_OUT // 품절 알림
+}
+
+model Notification {
+    id        String           @id
+    user      User             @relation(fields: [userId], references: [id])
+    userId    String
+    type      NotificationType
+    payload   Json
+    isRead    Boolean          @default(false)
+    createdAt DateTime         @default(now())
+}
+
+enum ActionType {
+    CREATE_PHOTO_CARD // 포토 카드 등록
+    UPDATE_PHOTO_CARD // 포토 카드 수정
+    DELETE_PHOTO_CARD // 포토 카드 삭제
+    CREATE_LISTING // 판매 포토 카드 등록
+    PROPOSE_EXCHANGE // 교환 제안
+    APPROVE_EXCHANGE // 교환 수락
+    REJECT_EXCHANGE // 교환 거절
+    RANDOM_BOX_REWARD // 랜덤 박스 보상
+    UPDATE_PROFILE // 프로필 업데이트
+    DELETE_ACCOUNT // 계정 삭제
+    RESET_PASSWORD // 비밀번호 변경
+    LOGIN
+    LOGOUT
+    REGISTER
+}
+
+enum EntityType {
+    USER
+    MY_PHOTO_CARD
+    LISTING
+    EXCHANGE_OFFER
+    TRANSACTION
+    POINT
+    NOTIFICATION
+    HISTORY
+}
+
+model History {
+    id          String      @id
+    user        User        @relation(fields: [userId], references: [id])
+    userId      String
+    action      ActionType
+    description String?
+    entityType  EntityType?
+    entityId    String?
+
+    previousData Json?
+    newData      Json?
+
+    createdAt DateTime @default(now())
+}
