@@ -68,7 +68,7 @@ async function main() {
   const allExchangeOffers = mockExchangeOffer(
     usersWithHashedPw,
     allListings,
-    20
+    100
   );
 
   await prisma.exchangeOffer.createMany({
