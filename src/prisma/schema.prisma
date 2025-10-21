@@ -57,7 +57,7 @@ enum Genre {
 
 model MyPhotoCard {
     id     String @id
-    user   User   @relation(fields: [userId], references: [id])
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
 
     title       String
@@ -84,9 +84,9 @@ enum ListingStatus {
 
 model Listing {
     id            String      @id
-    seller        User        @relation(fields: [sellerId], references: [id])
+    seller        User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
     sellerId      String
-    myPhotoCard   MyPhotoCard @relation(fields: [myPhotoCardId], references: [id])
+    myPhotoCard   MyPhotoCard @relation(fields: [myPhotoCardId], references: [id], onDelete: Cascade)
     myPhotoCardId String
 
     price    Int
@@ -129,7 +129,7 @@ model ExchangeOffer {
     id          String  @id
     listing     Listing @relation(fields: [listingId], references: [id])
     listingId   String
-    offeredBy   User    @relation(fields: [offeredById], references: [id])
+    offeredBy   User    @relation(fields: [offeredById], references: [id], onDelete: Cascade)
     offeredById String
 
     offeredDescription String
@@ -149,7 +149,7 @@ enum PointReason {
 
 model Point {
     id        String      @id
-    user      User        @relation(fields: [userId], references: [id])
+    user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId    String
     amount    Int
     reason    PointReason
@@ -167,7 +167,7 @@ enum NotificationType {
 
 model Notification {
     id        String           @id
-    user      User             @relation(fields: [userId], references: [id])
+    user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId    String
     type      NotificationType
     payload   Json
