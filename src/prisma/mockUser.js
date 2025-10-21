@@ -1,6 +1,6 @@
 const User = [
   {
-    id: "user-1",
+    id: "user1",
     providerId: "google-uid-1001",
     providerType: "GOOGLE",
     email: "yudi@gmail.com",
@@ -12,7 +12,7 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user-2",
+    id: "user2",
     providerId: "google-uid-1002",
     providerType: "GOOGLE",
     email: "yeonwoo@gmail.com",
@@ -24,7 +24,7 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user-3",
+    id: "user3",
     providerId: null,
     providerType: "EMAIL",
     email: "1234@example.com",
@@ -36,7 +36,7 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user-4",
+    id: "user4",
     providerId: null,
     providerType: "EMAIL",
     email: "5678@example.com",
@@ -48,7 +48,7 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user-5",
+    id: "user5",
     providerId: null,
     providerType: "EMAIL",
     email: "example@example.com",
