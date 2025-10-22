@@ -10,7 +10,9 @@
     "build": "echo \"JS 프로젝트라 build 단계 없음\"",
     "lint": "eslint . --ext .js",
     "format": "prettier --write \"**/*.{js,json,md}\"",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed": "prisma db seed",
+    "studio": "prisma studio"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma",
