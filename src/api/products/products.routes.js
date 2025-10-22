@@ -1,8 +1,24 @@
-// 예시파일입니다. 필요시 지우고 사용하세요.
-// TODO: implement
-// import { Router } from "express";
-// import * as controller from "./products.controller.js";
+import { Router } from "express";
+// import { authGuard } from "../../middlewares/authGuard.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import { purchaseSchema, createExchangeSchema } from "./validators/products.validators.js";
+import * as controller from "./products.controller.js";
 
-// const router = Router();
+const router = Router();
 
-// export default router;
+router.post(
+  "/marketplace/:listingId/purchase",
+  //   authGuard,           //authGuard는 나중에 적용
+  validate(purchaseSchema),
+  controller.purchase,
+);
+
+// 교환 신청 생성
+router.post(
+  "/marketplace/:listingId/exchanges",
+  //   authGuard, //authGuard는 나중에 적용
+  validate(createExchangeSchema),
+  controller.createExchangeOffer,
+);
+
+export default router;
