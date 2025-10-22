@@ -1,7 +1,7 @@
 import { Router } from "express";
 // import { authGuard } from "../../middlewares/authGuard.js";
 import { validate } from "../../middlewares/validate.middleware.js";
-import { purchaseSchema } from "./validators/products.validators.js";
+import { purchaseSchema, createExchangeSchema } from "./validators/products.validators.js";
 import * as controller from "./products.controller.js";
 
 const router = Router();
@@ -11,6 +11,14 @@ router.post(
   //   authGuard,           //authGuard는 나중에 적용
   validate(purchaseSchema),
   controller.purchase,
+);
+
+// 교환 신청 생성
+router.post(
+  "/marketplace/:listingId/exchanges",
+  //   authGuard, //authGuard는 나중에 적용
+  validate(createExchangeSchema),
+  controller.createExchangeOffer,
 );
 
 export default router;

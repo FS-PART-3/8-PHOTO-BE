@@ -1,4 +1,5 @@
 // 예시파일입니다. 필요시 지우고 사용하세요.
+import { id } from "zod/locales";
 import { prisma } from "../../config/db.js";
 import { randomUUID } from "crypto";
 async function getUserPointBalance(tx, userId) {
@@ -77,5 +78,59 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
 
     const buyerBalanceAfter = buyerBalance - totalAmount;
     return { transaction, listingAfter, buyerBalanceAfter, totalAmount };
+  });
+}
+export async function runCreateExchangeOfferTransaction({
+  offeredById,
+  listingId,
+  offeredDescription,
+}) {
+  return await prisma.$transaction(async (tx) => {
+    // 1) 판매글 조회
+    const listing = await tx.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true, sellerId: true, status: true },
+    });
+    if (!listing) throw Object.assign(new Error("존재하지 않는 판매글입니다."), { code: 404 });
+
+    if (listing.sellerId === offeredById) {
+      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
+    }
+    if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
+      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
+        code: 400,
+      });
+    }
+
+    // 2) 동일 사용자의 중복 PENDING 신청 방지
+    const dup = await tx.exchangeOffer.findFirst({
+      where: { listingId, offeredById, status: "PENDING" },
+      select: { id: true },
+    });
+    if (dup) {
+      throw Object.assign(new Error("이미 대기 중인 교환 신청이 있습니다."), { code: 409 });
+    }
+
+    // 3) 교환 신청 생성
+    const offer = await tx.exchangeOffer.create({
+      data: {
+        id: randomUUID(),
+        offeredBy: { connect: { id: offeredById } },
+        listing: { connect: { id: listingId } },
+        offeredDescription,
+      },
+    });
+
+    // 4) 알림: 판매자에게 교환 제안
+    await tx.notification.create({
+      data: {
+        id: randomUUID(),
+        userId: listing.sellerId,
+        type: "EXCHANGE_PROPOSED",
+        payload: { listingId, offerId: offer.id, offeredById, offeredDescription },
+      },
+    });
+
+    return offer;
   });
 }

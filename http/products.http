@@ -11,3 +11,12 @@ Content-Type: application/json
   "quantity": 1,
     "buyerId": "user2"
 }
+### 교환 신청 생성 (201Created)
+POST http://localhost:4000/api/marketplace/{{listingId}}/exchanges
+# Authorization: Bearer {{ACCESS_TOKEN}}
+Content-Type: application/json
+
+{
+  "offeredDescription": "동일 시리즈 카드로 교환 원해요",
+   "offeredById": "user2" 
+}

@@ -17,3 +17,17 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
     },
   };
 }
+export async function createExchangeOffer({ offeredById, listingId, offeredDescription }) {
+  const offer = await repo.runCreateExchangeOfferTransaction({
+    offeredById,
+    listingId,
+    offeredDescription,
+  });
+
+  return {
+    offerId: offer.id,
+    listingId,
+    status: offer.status, // PENDING 상태코드로 변경
+    createdAt: offer.createdAt,
+  };
+}
