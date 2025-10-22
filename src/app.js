@@ -6,6 +6,7 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middlewares/index.js";
+import salesRouter from "./api/sales/index.js";
 
 import apiRouter from "./api/index.js";
 
@@ -27,8 +28,8 @@ app.get("/health", (_req, res) => {
 });
 
 //  3. API 라우터
-
-app.use("/api", apiRouter);
+app.use("/api", salesRouter);
+// app.use("/api", apiRouter);
 
 //  4. Swagger 문서
 
