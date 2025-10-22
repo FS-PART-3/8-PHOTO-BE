@@ -1,9 +1,13 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { env, logger, corsMiddleware, swaggerSpec } from "./config/index.js";
-import { applySecurity, errorHandler, notFoundHandler } from "./middlewares/index.js";
+import {
+  applySecurity,
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/index.js";
 
-// import apiRouter from "./api/index.js";
+import apiRouter from "./api/index.js";
 
 const app = express();
 
@@ -24,7 +28,7 @@ app.get("/health", (_req, res) => {
 
 //  3. API 라우터
 
-// app.use("/api", apiRouter);
+app.use("/api", apiRouter);
 
 //  4. Swagger 문서
 
