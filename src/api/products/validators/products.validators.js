@@ -1,6 +1,16 @@
 // 예시 코드입니다. 필요시 지우고 사용하세요.
+import { z } from "zod";
 
-// import { z } from "zod";
+export const purchaseSchema = z.object({
+  params: z.object({
+    listingId: z.string().min(1, "listingId는 필수입니다."),
+  }),
+  body: z.object({
+    quantity: z.number().int().min(1).default(1),
+    buyerId: z.string().optional(), //authGuard 미적용시 테스트용
+  }),
+  query: z.object({}).optional(),
+});
 
 // export const listSchema = z.object({
 //   query: z.object({
