@@ -6,6 +6,7 @@
 
 generator client {
     provider = "prisma-client-js"
+    output   = "../../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -14,6 +15,21 @@ datasource db {
 }
 
 model User {
+    id           String   @id @default(uuid())
+    email        String   @unique
+    name         String?
+    password     String?
+    refreshToken String?
+    provider     String   @default("local")
+    providerId   String?  @unique
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+}
+
+// 테스트용 인가 필요 테이블입니다. 차후 지우셔도 됩니다.
+model Test {
+    id        String   @id @default(uuid())
+    content   String
     id           String        @id
     providerId   String?       @unique
     providerType ProviderType? @default(EMAIL)
@@ -214,6 +230,5 @@ model History {
 
     previousData Json?
     newData      Json?
-
     createdAt DateTime @default(now())
 }

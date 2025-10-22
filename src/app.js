@@ -8,7 +8,7 @@ import {
 } from "./middlewares/index.js";
 import salesRouter from "./api/sales/index.js";
 
-// import apiRouter from "./api/index.js";
+import apiRouter from "./api/index.js";
 
 const app = express();
 
