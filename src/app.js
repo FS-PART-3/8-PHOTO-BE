@@ -10,6 +10,7 @@ import salesRouter from "./api/sales/index.js";
 import productRouter from "./api/products/index.js";
 
 import apiRouter from "./api/index.js";
+import startCronJob from "./utils/cronjob.js";
 
 const app = express();
 
@@ -48,6 +49,7 @@ const port = env.PORT || 4000;
 app.listen(port, () => {
   logger.info(` Server listening on http://localhost:${port}`);
   logger.info(` Swagger docs available at http://localhost:${port}/docs`);
+  startCronJob(); // 서버 핑 크론 작업 시작
 });
 
 export default app;
