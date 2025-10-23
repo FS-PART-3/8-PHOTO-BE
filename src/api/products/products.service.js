@@ -17,7 +17,11 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
     },
   };
 }
-export async function createExchangeOffer({ offeredById, listingId, offeredDescription }) {
+export async function createExchangeOffer({
+  offeredById,
+  listingId,
+  offeredDescription,
+}) {
   const offer = await repo.runCreateExchangeOfferTransaction({
     offeredById,
     listingId,
@@ -30,4 +34,38 @@ export async function createExchangeOffer({ offeredById, listingId, offeredDescr
     status: offer.status, // PENDING 상태코드로 변경
     createdAt: offer.createdAt,
   };
+}
+
+// 마켓플레이스 판매 카드 조회
+export async function getMarketplaceListingsService(params) {
+  const listings = await repo.getMarketplaceListings(params);
+  return listings;
+}
+
+// 내 포토카드 목록 조회
+export async function getMyPhotoCardsService(userId, params) {
+  const photos = await repo.getMyPhotoCards(
+    userId,
+    params.search,
+    params.grade,
+    params.genre,
+    params.soldOut,
+    params.sortBy,
+    params.sortOrder,
+    params.cursor,
+    params.take
+  );
+  return photos;
+}
+
+// 포토카드 상세 조회
+export async function getMyPhotoCardByIdService(myPhotoCardId) {
+  const photo = await repo.getMyPhotoCardById(myPhotoCardId);
+  return photo;
+}
+
+// 판매 등록
+export async function createListingService(data) {
+  const listing = await repo.createListing(data);
+  return listing;
 }
