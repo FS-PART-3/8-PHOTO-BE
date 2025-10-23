@@ -148,13 +148,13 @@ CREATE UNIQUE INDEX "User_providerId_key" ON "public"."User"("providerId");
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- AddForeignKey
-ALTER TABLE "public"."MyPhotoCard" ADD CONSTRAINT "MyPhotoCard_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."MyPhotoCard" ADD CONSTRAINT "MyPhotoCard_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Listing" ADD CONSTRAINT "Listing_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Listing" ADD CONSTRAINT "Listing_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Listing" ADD CONSTRAINT "Listing_myPhotoCardId_fkey" FOREIGN KEY ("myPhotoCardId") REFERENCES "public"."MyPhotoCard"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Listing" ADD CONSTRAINT "Listing_myPhotoCardId_fkey" FOREIGN KEY ("myPhotoCardId") REFERENCES "public"."MyPhotoCard"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Transaction" ADD CONSTRAINT "Transaction_buyerId_fkey" FOREIGN KEY ("buyerId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -166,13 +166,13 @@ ALTER TABLE "public"."Transaction" ADD CONSTRAINT "Transaction_listingId_fkey" F
 ALTER TABLE "public"."ExchangeOffer" ADD CONSTRAINT "ExchangeOffer_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "public"."Listing"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."ExchangeOffer" ADD CONSTRAINT "ExchangeOffer_offeredById_fkey" FOREIGN KEY ("offeredById") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."ExchangeOffer" ADD CONSTRAINT "ExchangeOffer_offeredById_fkey" FOREIGN KEY ("offeredById") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Point" ADD CONSTRAINT "Point_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Point" ADD CONSTRAINT "Point_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."History" ADD CONSTRAINT "History_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
