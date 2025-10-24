@@ -84,9 +84,10 @@ model Listing {
     myPhotoCard   MyPhotoCard @relation(fields: [myPhotoCardId], references: [id], onDelete: Cascade)
     myPhotoCardId String
 
-    price    Int
-    quantity Int
-    status   ListingStatus @default(FOR_SALE)
+    price        Int
+    quantity     Int
+    initQuantity Int           @default(0)
+    status       ListingStatus @default(FOR_SALE)
 
     preferredGrade       Grade
     preferredGenre       String
