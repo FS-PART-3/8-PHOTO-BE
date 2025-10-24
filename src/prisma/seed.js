@@ -30,7 +30,7 @@ async function main() {
   // 이메일 로그인 사용자 -> 비밀번호 해싱
   const usersWithHashedPw = await Promise.all(
     mockUser.map(async (u) => {
-      if (u.providerType === "EMAIL" && u.password) {
+      if (u.provider === "local" && u.password) {
         const hashedPw = await bcrypt.hash(u.password, 10);
         return { ...u, password: hashedPw };
       }
