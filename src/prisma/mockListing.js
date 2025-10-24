@@ -16,12 +16,16 @@ const mockListing = (userId, myPhotoCards, count = 50) => {
     const preferredDescription =
       preferredDescriptions[i % preferredDescriptions.length];
 
+    const quantity = Math.floor(Math.random() * 3) + 1;
+    const initQuantity = quantity;
+
     listings.push({
       id: `listing-${userId}-${i + 1}`,
       sellerId: userId,
       myPhotoCardId: photo.id,
-      price: photo.price,
-      quantity: photo.quantity,
+      price: Math.floor(Math.random() * 100) + 1,
+      quantity,
+      initQuantity,
       status: i % 2 === 0 ? "FOR_SALE" : "FOR_EXCHANGE",
 
       preferredGrade,
