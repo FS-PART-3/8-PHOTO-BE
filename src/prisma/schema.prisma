@@ -21,7 +21,7 @@ model User {
     email        String  @unique
     name         String
     password     String?
-    refreshtoken String
+    refreshToken String
 
     isDeleted Boolean  @default(false)
     createdAt DateTime @default(now())
