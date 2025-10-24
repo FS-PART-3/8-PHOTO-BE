@@ -17,11 +17,7 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
     },
   };
 }
-export async function createExchangeOffer({
-  offeredById,
-  listingId,
-  offeredDescription,
-}) {
+export async function createExchangeOffer({ offeredById, listingId, offeredDescription }) {
   const offer = await repo.runCreateExchangeOfferTransaction({
     offeredById,
     listingId,
@@ -31,6 +27,7 @@ export async function createExchangeOffer({
   return {
     offerId: offer.id,
     listingId,
+    offeredDescription: offer.offeredDescription,
     status: offer.status, // PENDING 상태코드로 변경
     createdAt: offer.createdAt,
   };
@@ -53,7 +50,7 @@ export async function getMyPhotoCardsService(userId, params) {
     params.sortBy,
     params.sortOrder,
     params.cursor,
-    params.take
+    params.take,
   );
   return photos;
 }
