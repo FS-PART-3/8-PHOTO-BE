@@ -1,8 +1,8 @@
 const User = [
   {
-    id: "user1",
+    id: "550e8400-e29b-41d4-a716-446655440001",
     providerId: "google-uid-1001",
-    providerType: "GOOGLE",
+    provider: "google",
     email: "yudi@gmail.com",
     name: "유디",
     password: null,
@@ -12,9 +12,9 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user2",
+    id: "550e8400-e29b-41d4-a716-446655440002",
     providerId: "google-uid-1002",
-    providerType: "GOOGLE",
+    provider: "google",
     email: "yeonwoo@gmail.com",
     name: "연우",
     password: null,
@@ -24,9 +24,9 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user3",
+    id: "550e8400-e29b-41d4-a716-446655440003",
     providerId: null,
-    providerType: "EMAIL",
+    provider: "local",
     email: "1234@example.com",
     name: "다혜",
     password: "12345678",
@@ -36,9 +36,9 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user4",
+    id: "550e8400-e29b-41d4-a716-446655440004",
     providerId: null,
-    providerType: "EMAIL",
+    provider: "local",
     email: "5678@example.com",
     name: "희성",
     password: "11111111",
@@ -48,9 +48,9 @@ const User = [
     updatedAt: new Date(),
   },
   {
-    id: "user5",
+    id: "550e8400-e29b-41d4-a716-446655440005",
     providerId: null,
-    providerType: "EMAIL",
+    provider: "local",
     email: "example@example.com",
     name: "수현",
     password: "12341234",

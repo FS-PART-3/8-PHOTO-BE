@@ -14,14 +14,14 @@ datasource db {
 }
 
 model User {
-    id           String        @id
-    providerId   String?       @unique
-    providerType ProviderType? @default(EMAIL)
+    id         String  @id @default(uuid())
+    providerId String? @unique
+    provider   String  @default("local")
 
     email        String  @unique
     name         String
     password     String?
-    refreshToken String
+    refreshToken String?
 
     isDeleted Boolean  @default(false)
     createdAt DateTime @default(now())
@@ -34,11 +34,6 @@ model User {
     points         Point[]
     notifications  Notification[]
     histories      History[]
-}
-
-enum ProviderType {
-    EMAIL
-    GOOGLE
 }
 
 enum Grade {
