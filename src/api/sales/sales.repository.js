@@ -64,7 +64,6 @@ export const findAllSalesCards = async (where, pagination) => {
 
   const cards = listings.map((listing) => ({
     id: listing.id,
-    listingId: listing.id,
     status: listing.status,
     price: listing.price,
     quantity: listing.quantity,
