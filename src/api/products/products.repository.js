@@ -33,10 +33,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         code: 400,
       });
     if (listing.status !== "FOR_SALE")
-      throw Object.assign(
-        new Error("현재 구매할 수 없는 상태의 판매글입니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("현재 구매할 수 없는 상태의 판매글입니다."), { code: 400 });
     if (listing.quantity < quantity)
       throw Object.assign(new Error("재고가 부족합니다."), { code: 400 });
 
@@ -131,18 +128,12 @@ export async function runCreateExchangeOfferTransaction({
       });
 
     if (listing.sellerId === offeredById) {
-      throw Object.assign(
-        new Error("자신의 판매글에는 교환을 신청할 수 없습니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
     }
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
-      throw Object.assign(
-        new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."),
-        {
-          code: 400,
-        }
-      );
+      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
+        code: 400,
+      });
     }
 
     // 2) 동일 사용자의 중복 PENDING 신청 방지
@@ -183,6 +174,91 @@ export async function runCreateExchangeOfferTransaction({
 
     return offer;
   });
+}
+// 판매 수정
+export async function updateListing({ sellerId, listingId, payload }) {
+  // 1) 소유자/상태 검증
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: { id: true, sellerId: true, status: true },
+  });
+  if (!listing) {
+    const e = new Error("존재하지 않는 판매글입니다.");
+    e.code = 404;
+    throw e;
+  }
+  if (listing.sellerId !== sellerId) {
+    const e = new Error("본인 판매글만 수정할 수 있습니다.");
+    e.code = 403;
+    throw e;
+  }
+  if (["SOLD_OUT", "CANCELLED"].includes(listing.status)) {
+    const e = new Error("종료된 판매글은 수정할 수 없습니다.");
+    e.code = 400;
+    throw e;
+  }
+
+  // 2) 수정 수행
+  const updated = await prisma.listing.update({
+    where: { id: listingId },
+    data: {
+      ...(payload.price !== undefined ? { price: payload.price } : {}),
+      ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
+      ...(payload.preferredGrade !== undefined ? { preferredGrade: payload.preferredGrade } : {}),
+      ...(payload.preferredGenre !== undefined ? { preferredGenre: payload.preferredGenre } : {}),
+      ...(payload.preferredDescription !== undefined
+        ? { preferredDescription: payload.preferredDescription }
+        : {}),
+    },
+    select: {
+      id: true,
+      price: true,
+      quantity: true,
+      status: true,
+      preferredGrade: true,
+      preferredGenre: true,
+      preferredDescription: true,
+      updatedAt: true,
+    },
+  });
+
+  return updated;
+}
+
+// 판매 내리기 (판매 취소)
+export async function cancelListing({ sellerId, listingId }) {
+  // 1) 판매글 검증
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: { id: true, sellerId: true, status: true },
+  });
+
+  if (!listing) {
+    const err = new Error("존재하지 않는 판매글입니다.");
+    err.code = 404;
+    throw err;
+  }
+
+  if (listing.sellerId !== sellerId) {
+    const err = new Error("본인 판매글만 취소할 수 있습니다.");
+    err.code = 403;
+    throw err;
+  }
+
+  if (listing.status !== "FOR_SALE" && listing.status !== "FOR_EXCHANGE") {
+    const err = new Error("이미 취소되었거나 판매 완료된 글입니다.");
+    err.code = 400;
+    throw err;
+  }
+
+  // 2) 상태 업데이트
+  const cancelled = await prisma.listing.update({
+    where: { id: listingId },
+    data: { status: "CANCELLED" },
+    select: { id: true, status: true },
+  });
+
+  return cancelled;
 }
 
 // 마켓플레이스 판매 카드 목록 조회 +검색/필터/정렬
@@ -232,7 +308,7 @@ export async function getMyPhotoCards(
   sortBy,
   sortOrder,
   cursor,
-  take = 6
+  take = 6,
 ) {
   const where = { userId };
 

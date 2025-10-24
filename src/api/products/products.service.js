@@ -32,6 +32,28 @@ export async function createExchangeOffer({ offeredById, listingId, offeredDescr
     createdAt: offer.createdAt,
   };
 }
+// 마켓플레이스 판매 수정
+export async function updateListing({ sellerId, listingId, payload }) {
+  const updated = await repo.updateListing({ sellerId, listingId, payload });
+  return {
+    id: updated.id,
+    price: updated.price,
+    quantity: updated.quantity,
+    status: updated.status,
+    preferredGrade: updated.preferredGrade,
+    preferredGenre: updated.preferredGenre,
+    preferredDescription: updated.preferredDescription,
+    updatedAt: updated.updatedAt,
+  };
+}
+// 마켓플레이스 판매 내리기 (판매 취소)
+export async function cancelListing({ sellerId, listingId }) {
+  const cancelled = await repo.cancelListing({ sellerId, listingId });
+  return {
+    id: cancelled.id,
+    status: cancelled.status,
+  };
+}
 
 // 마켓플레이스 판매 카드 조회
 export async function getMarketplaceListingsService(params) {
