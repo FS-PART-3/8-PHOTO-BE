@@ -32,7 +32,7 @@ app.get("/health", (_req, res) => {
 //  3. API 라우터
 app.use("/api", salesRouter);
 app.use("/api", productRouter);
-// app.use("/api", apiRouter);
+app.use("/api", apiRouter);
 
 //  4. Swagger 문서
 
