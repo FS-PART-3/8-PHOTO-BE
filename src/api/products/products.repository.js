@@ -281,6 +281,7 @@ export async function createListing({
       seller: { connect: { id: sellerId } },
       price,
       quantity,
+      initQuantity: quantity,
       preferredGrade,
       preferredGenre,
       preferredDescription,
