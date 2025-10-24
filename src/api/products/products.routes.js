@@ -4,6 +4,7 @@ import { validate } from "../../middlewares/validate.middleware.js";
 import {
   purchaseSchema,
   createExchangeSchema,
+  updateListingSchema,
   createListingSchema,
 } from "./validators/products.validators.js";
 import * as controller from "./products.controller.js";
@@ -24,6 +25,16 @@ router.post(
   validate(createExchangeSchema),
   controller.createExchangeOffer,
 );
+// 판매 수정
+router.patch(
+  "/marketplace/:listingId",
+  verifyAccessToken,
+  validate(updateListingSchema),
+  controller.updateListing,
+);
+
+// 판매 내리기 (판매 취소)
+router.patch("/marketplace/:listingId/cancel", verifyAccessToken, controller.cancelListing);
 
 // 마켓플레이스 판매 카드 목록 조회
 router.get("/marketplace", controller.getMarketplaceListings);

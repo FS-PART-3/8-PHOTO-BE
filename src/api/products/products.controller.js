@@ -29,6 +29,24 @@ export const createExchangeOffer = asyncHandler(async (req, res) => {
   return res.status(201).json(result);
 });
 
+// 마켓플레이스 판매 수정
+export const updateListing = asyncHandler(async (req, res) => {
+  const sellerId = req.auth?.userId ?? req.user?.userId ?? req.user?.id;
+  const { listingId } = req.params;
+  const payload = req.body;
+
+  const updated = await service.updateListing({ sellerId, listingId, payload });
+  return res.status(200).json(updated);
+});
+// 마켓플레이스 판매 내리기 (판매 취소)
+export const cancelListing = asyncHandler(async (req, res) => {
+  const sellerId = req.user?.id ?? req.auth?.userId;
+  const { listingId } = req.params;
+
+  const result = await service.cancelListing({ sellerId, listingId });
+  return res.status(200).json(result);
+});
+
 // 마켓플레이스 판매 카드 목록
 export const getMarketplaceListings = asyncHandler(async (req, res) => {
   const params = req.query; // 검색, 필터, 정렬, cursor, take 등

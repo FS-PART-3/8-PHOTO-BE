@@ -23,6 +23,22 @@ export const createExchangeSchema = z.object({
   }),
   query: z.object({}).optional(),
 });
+
+export const updateListingSchema = z.object({
+  params: z.object({ listingId: z.string().min(1) }),
+  body: z
+    .object({
+      price: z.number().int().min(1).optional(),
+      quantity: z.number().int().min(1).optional(),
+      preferredGrade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]).optional(),
+      preferredGenre: z.string().min(1).optional(),
+      preferredDescription: z.string().min(1).optional(),
+    })
+    .refine((b) => Object.keys(b).length > 0, {
+      message: "수정할 필드를 한 개 이상 포함해야 합니다.",
+    }),
+  query: z.object({}).optional(),
+});
 // export const listSchema = z.object({
 //   query: z.object({
 //     page: z.coerce.number().int().min(0).default(0).optional(),
@@ -62,10 +78,7 @@ export const createListingSchema = z.object({
     quantity: z.number().int().min(1, "quantity는 1 이상의 숫자여야 합니다."),
     preferredGrade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]),
     preferredGenre: z.enum(["풍경", "인물", "도시", "자연"]),
-    preferredDescription: z
-      .string()
-      .max(500)
-      .min(1, "preferredDescription은 필수입니다."),
+    preferredDescription: z.string().max(500).min(1, "preferredDescription은 필수입니다."),
     sellerId: z.string().optional(), // authGuard 미적용 시 테스트용 .min(1, "sellerId는 필수입니다.")
   }),
   params: z.object({}).optional(),
