@@ -6,20 +6,24 @@ import { prisma } from "../../config/db.js";
  */
 const SALES_CARD_SELECT = {
   id: true,
-  title: true,
-  grade: true,
-  genre: true,
   price: true,
   quantity: true,
-  imgUrl: true,
-  description: true,
-  isDeleted: true,
+  status: true,
   createdAt: true,
   updatedAt: true,
-  user: {
+  seller: {
     select: {
       id: true,
       name: true,
+    },
+  },
+  myPhotoCard: {
+    select: {
+      id: true,
+      title: true,
+      grade: true,
+      genre: true,
+      imgUrl: true,
     },
   },
 };
@@ -31,9 +35,9 @@ const SALES_CARD_SELECT = {
  */
 export const findAllSalesCards = async (where, pagination) => {
   // 병렬 쿼리 실행
-  const [cards, totalCount, gradeCountsArray] = await Promise.all([
+  const [listings, totalCount, gradeCountsArray] = await Promise.all([
     // 1. 포토카드 목록 조회
-    prisma.myPhotoCard.findMany({
+    prisma.listing.findMany({
       where,
       select: SALES_CARD_SELECT,
       skip: pagination.skip,
@@ -42,17 +46,36 @@ export const findAllSalesCards = async (where, pagination) => {
     }),
 
     // 2. 전체 개수 (필터 적용)
-    prisma.myPhotoCard.count({ where }),
+    prisma.listing.count({ where }),
 
-    // 3. 등급별 개수 (필터 적용)
+    // 3. 등급별 개수 - MyPhotoCard를 groupBy하되, Listing 조건 반영
     prisma.myPhotoCard.groupBy({
       by: ["grade"],
-      where,
+      where: {
+        listings: {
+          some: where,
+        },
+      },
       _count: {
         grade: true,
       },
     }),
   ]);
+
+  const cards = listings.map((listing) => ({
+    id: listing.id,
+    listingId: listing.id,
+    status: listing.status,
+    price: listing.price,
+    quantity: listing.quantity,
+    title: listing.myPhotoCard.title,
+    grade: listing.myPhotoCard.grade,
+    genre: listing.myPhotoCard.genre,
+    imgUrl: listing.myPhotoCard.imgUrl,
+    createdAt: listing.createdAt,
+    updatedAt: listing.updatedAt,
+    user: listing.seller,
+  }));
 
   return {
     cards,
