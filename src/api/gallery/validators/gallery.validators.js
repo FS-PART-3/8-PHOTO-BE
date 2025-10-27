@@ -24,7 +24,7 @@ export const createPhotoCardSchema = z.object({
       required_error: "장르는 필수입니다.",
     }),
     price: z.coerce.number().int().min(0, "가격은 0 이상이어야 합니다."),
-    quantity: z.coerce.number().int().min(1, "수량은 1 이상이어야 합니다."),
+    quantity: z.coerce.number().int().min(1, "수량은 1 이상이어야 합니다.").max(10, "한 번에 최대 10장까지 생성 가능합니다."),
     description: z.string().max(1000).optional().default(""),
     userId: z.string().optional(), // authGuard 미적용시 테스트용
   }),
