@@ -9,43 +9,6 @@ async function getUserPointBalance(tx, userId) {
   });
   return Number(agg._sum.amount || 0);
 }
-async function addToBuyerMyPhotoCard(tx, { buyerId, listing, quantity }) {
-  const { title, imgUrl, grade, genre } = listing.myPhotoCard;
-
-  const baseWhere = {
-    userId: buyerId,
-    title,
-    grade,
-    genre,
-    imgUrl,
-  };
-
-  const existing = await tx.myPhotoCard.findFirst({
-    where: baseWhere,
-    select: { id: true },
-  });
-
-  if (existing) {
-    await tx.myPhotoCard.update({
-      where: { id: existing.id },
-      data: { quantity: { increment: quantity } },
-    });
-  } else {
-    await tx.myPhotoCard.create({
-      data: {
-        id: randomUUID(),
-        userId: buyerId,
-        title,
-        imgUrl,
-        grade,
-        genre,
-        price: 0,
-        description: "",
-        quantity,
-      },
-    });
-  }
-}
 
 export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
   return await prisma.$transaction(async (tx) => {
@@ -55,16 +18,19 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       select: {
         id: true,
         sellerId: true,
-        myPhotoCardId: true,
         price: true,
         quantity: true,
         status: true,
-        myPhotoCard: {
+        photoCards: {
           select: {
+            id: true,
+            userId: true,
             title: true,
             imgUrl: true,
             grade: true,
             genre: true,
+            description: true,
+            quantity: true,
           },
         },
       },
@@ -90,10 +56,25 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
     if (buyerBalance < totalAmount)
       throw Object.assign(new Error("포인트가 부족합니다."), { code: 400 });
 
+    // 판매자 원본 MyPhotoCard 찾기
+    const sellerSourceCard =
+      listing.photoCards.find((c) => c.userId === listing.sellerId) ||
+      (await tx.myPhotoCard.findFirst({
+        where: { userId: listing.sellerId, listings: { some: { id: listingId } } },
+        select: { id: true, quantity: true },
+      }));
+
+    if (!sellerSourceCard)
+      throw Object.assign(new Error("판매글의 원본 포토카드를 찾을 수 없습니다."), {
+        code: 500,
+      });
+    if (sellerSourceCard.quantity < quantity)
+      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), { code: 409 });
+
     // 3) 판매자 MyPhotoCard 보유 수량 차감
     const decCard = await tx.myPhotoCard.updateMany({
       where: {
-        id: listing.myPhotoCardId,
+        id: sellerSourceCard.id,
         userId: listing.sellerId,
         quantity: { gte: quantity },
       },
@@ -122,16 +103,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         select: { id: true, quantity: true, status: true },
       });
     }
-    // 나의 포토카드 SOLD_OUT 이면 소프트삭제
-    await tx.myPhotoCard.updateMany({
-      where: {
-        id: listing.myPhotoCardId,
-        userId: listing.sellerId,
-        isDeleted: false,
-        quantity: 0,
-      },
-      data: { isDeleted: true },
-    });
+
     // 6) 거래 생성
     const transaction = await tx.transaction.create({
       data: { id: randomUUID(), buyerId, listingId, totalAmount, quantity },
@@ -146,8 +118,45 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       skipDuplicates: true,
     });
     // 구매자 보유 포토카드 추가
-    await addToBuyerMyPhotoCard(tx, { buyerId, listing, quantity });
+    const sourceCard =
+      listing.photoCards[0] ||
+      (await tx.myPhotoCard.findFirst({
+        where: { userId: listing.sellerId, listing: { some: { id: listingId } } },
+        select: { title: true, imgUrl: true, grade: true, genre: true, description: true },
+      }));
 
+    if (!sourceCard)
+      throw Object.assign(new Error("원본 포토카드 정보를 찾을 수 없습니다."), { code: 500 });
+
+    const existing = await tx.myPhotoCard.findFirst({
+      where: {
+        userId: buyerId,
+        listing: { some: { id: listingId } },
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      await tx.myPhotoCard.update({
+        where: { id: existing.id },
+        data: { quantity: { increment: quantity } },
+      });
+    } else {
+      await tx.myPhotoCard.create({
+        data: {
+          id: randomUUID(),
+          userId: buyerId,
+          title: sourceCard.title,
+          imgUrl: sourceCard.imgUrl,
+          grade: sourceCard.grade,
+          genre: sourceCard.genre,
+          price: 0,
+          description: sourceCard.description ?? "",
+          quantity,
+          listing: { connect: [{ id: listingId }] },
+        },
+      });
+    }
     // 8) 알림 생성
     await tx.notification.createMany({
       data: [
