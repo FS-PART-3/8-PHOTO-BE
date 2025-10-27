@@ -6,26 +6,43 @@ const DEFAULT_LIMIT = 15;
 
 /**
  * 쿼리 파라미터를 Prisma where 객체로 변환하는 헬퍼 함수
- * @param {object} filters - Controller에서 받은 필터 객체 { search, grade, status, genre }
- * @returns {object} Prisma where 객체
+ * @param {object} filters - Controller에서 받은 필터 객체 { search, grade, status, genre, soldOut }
+ * @returns {object} Prisma where 객체 (Listing 모델 기반)
  */
 const buildWhereClause = (filters) => {
   const where = {};
-  const { search, grade, genre } = filters;
+  const myPhotoCardFilters = {};
+  const { search, grade, genre, status, soldOut } = filters;
 
-  // 1. 검색어 (search) 처리: title 필드에 대해 부분 일치 검색
+  // 1. 검색어 (search) 처리: myPhotoCard의 title 필드에 대해 부분 일치 검색
   if (search) {
-    where.title = { contains: search, mode: "insensitive" };
+    myPhotoCardFilters.title = { contains: search, mode: "insensitive" };
   }
 
-  // 2. 등급 (grade) 처리: ENUM 값 필터링
+  // 2. 등급 (grade) 처리: myPhotoCard의 grade 필드 필터링
   if (grade) {
-    where.grade = grade.toUpperCase();
+    myPhotoCardFilters.grade = grade.toUpperCase();
   }
 
-  // 3. 장르 (genre) 처리
+  // 3. 장르 (genre) 처리: myPhotoCard의 genre 필드 필터링
   if (genre) {
-    where.genre = genre;
+    myPhotoCardFilters.genre = genre;
+  }
+
+  // myPhotoCard 필터가 있으면 where 절에 추가
+  if (Object.keys(myPhotoCardFilters).length > 0) {
+    where.myPhotoCard = myPhotoCardFilters;
+  }
+
+  // 4. 상태 (status) 처리: Listing의 status 필드 필터링
+  if (status) {
+    where.status = status.toUpperCase();
+  }
+
+  // 5. 품절 여부 (soldOut) 처리: quantity가 0인지 확인
+  if (soldOut !== undefined) {
+    const isSoldOut = soldOut === "true" || soldOut === true;
+    where.quantity = isSoldOut ? 0 : { gt: 0 };
   }
 
   return where;
@@ -75,10 +92,11 @@ export const getMySalesPhotocards = async (
 ) => {
   // 쿼리 파라미터 기반의 WHERE 절 생성
   const filterWhere = buildWhereClause(filters);
+
+  // Listing 모델 기반의 WHERE 절 구성
   const whereClause = {
-    userId: userId,
-    isDeleted: false,
-    ...(filterWhere || {}),
+    sellerId: userId, // Listing 모델의 sellerId 필드 사용
+    ...filterWhere,
   };
 
   const pagination = getPaginationOptions(page, limit);

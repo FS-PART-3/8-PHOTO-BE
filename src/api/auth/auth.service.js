@@ -15,7 +15,7 @@ export async function createUser(user) {
     } //중복되는 이메일이 있으면 에러(이미 존재하는 유저)
 
     const hashedPassword = await hashPassword(user.password); //해시화
-    const createdUser = await userRepository.save({
+    const createdUser = await repo.save({
       ...user,
       password: hashedPassword,
     });

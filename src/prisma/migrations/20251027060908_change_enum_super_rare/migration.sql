@@ -1,8 +1,5 @@
 -- CreateEnum
-CREATE TYPE "public"."ProviderType" AS ENUM ('EMAIL', 'GOOGLE');
-
--- CreateEnum
-CREATE TYPE "public"."Grade" AS ENUM ('COMMON', 'RARE', 'SUPERRARE', 'LEGENDARY');
+CREATE TYPE "public"."Grade" AS ENUM ('COMMON', 'RARE', 'SUPER_RARE', 'LEGENDARY');
 
 -- CreateEnum
 CREATE TYPE "public"."Genre" AS ENUM ('풍경', '인물', '도시', '자연');
@@ -29,11 +26,11 @@ CREATE TYPE "public"."EntityType" AS ENUM ('USER', 'MY_PHOTO_CARD', 'LISTING', '
 CREATE TABLE "public"."User" (
     "id" TEXT NOT NULL,
     "providerId" TEXT,
-    "providerType" "public"."ProviderType" DEFAULT 'EMAIL',
+    "provider" TEXT NOT NULL DEFAULT 'local',
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT,
-    "refreshtoken" TEXT NOT NULL,
+    "refreshToken" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -66,6 +63,7 @@ CREATE TABLE "public"."Listing" (
     "myPhotoCardId" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
+    "initQuantity" INTEGER NOT NULL DEFAULT 0,
     "status" "public"."ListingStatus" NOT NULL DEFAULT 'FOR_SALE',
     "preferredGrade" "public"."Grade" NOT NULL,
     "preferredGenre" TEXT NOT NULL,

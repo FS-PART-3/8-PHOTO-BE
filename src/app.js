@@ -6,8 +6,6 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middlewares/index.js";
-import salesRouter from "./api/sales/index.js";
-import productRouter from "./api/products/index.js";
 
 import apiRouter from "./api/index.js";
 import startCronJob from "./utils/cronjob.js";
@@ -30,9 +28,7 @@ app.get("/health", (_req, res) => {
 });
 
 //  3. API 라우터
-app.use("/api", salesRouter);
-app.use("/api", productRouter);
-app.use("/api", apiRouter);
+app.use("/api", apiRouter); //여기가 라우터 묶어둔 곳입니다. (프로젝트 초기 세팅)
 
 //  4. Swagger 문서
 

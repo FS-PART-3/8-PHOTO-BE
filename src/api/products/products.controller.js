@@ -3,15 +3,7 @@ import { asyncHandler } from "../../middlewares/asyncHandler.js";
 import * as service from "./products.service.js";
 
 export const purchase = asyncHandler(async (req, res) => {
-  const buyerId = req.user?.id ?? req.body?.buyerId; //  임시: 바디로 대체
-  if (!buyerId) {
-    const err = new Error(
-      "인증이 필요합니다. (임시: buyerId를 body에 넣어 테스트 가능)"
-    );
-    err.code = 401;
-    throw err;
-  }
-  //   const buyerId = req.user.id;  //  나중에 authGuard 적용 시 사용
+  const buyerId = req.auth.userId; //  유저 기능 적용
   const { listingId } = req.params;
   const { quantity } = req.body;
 
@@ -25,16 +17,7 @@ export const purchase = asyncHandler(async (req, res) => {
 });
 
 export const createExchangeOffer = asyncHandler(async (req, res) => {
-  // 임시 대체 로직(팀 프로젝트에서 authGuard 미구현 시 테스트용)
-  const offeredById = req.user?.id ?? req.body?.offeredById;
-  if (!offeredById) {
-    const err = new Error(
-      "인증이 필요합니다. (임시: offeredById를 body에 넣어 테스트 가능)"
-    );
-    err.code = 401;
-    throw err;
-  }
-  // const offeredById = req.user.id;  // 나중에 authGuard 적용 시 사용
+  const offeredById = req.auth.userId; //  유저 기능 적용
   const { listingId } = req.params;
   const { offeredDescription } = req.body;
 
@@ -44,6 +27,24 @@ export const createExchangeOffer = asyncHandler(async (req, res) => {
     offeredDescription,
   });
   return res.status(201).json(result);
+});
+
+// 마켓플레이스 판매 수정
+export const updateListing = asyncHandler(async (req, res) => {
+  const sellerId = req.auth?.userId ?? req.user?.userId ?? req.user?.id;
+  const { listingId } = req.params;
+  const payload = req.body;
+
+  const updated = await service.updateListing({ sellerId, listingId, payload });
+  return res.status(200).json(updated);
+});
+// 마켓플레이스 판매 내리기 (판매 취소)
+export const cancelListing = asyncHandler(async (req, res) => {
+  const sellerId = req.user?.id ?? req.auth?.userId;
+  const { listingId } = req.params;
+
+  const result = await service.cancelListing({ sellerId, listingId });
+  return res.status(200).json(result);
 });
 
 // 마켓플레이스 판매 카드 목록
@@ -73,7 +74,5 @@ export const createListing = asyncHandler(async (req, res) => {
   const sellerId = req.user?.id ?? req.body.sellerId;
   const data = { ...req.body, sellerId };
   const listing = await service.createListingService(data);
-  res
-    .status(201)
-    .json({ success: true, message: "판매 등록이 완료되었습니다.", listing });
+  res.status(201).json({ success: true, message: "판매 등록이 완료되었습니다.", listing });
 });
