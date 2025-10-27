@@ -79,7 +79,10 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         code: 400,
       });
     if (listing.status !== "FOR_SALE")
-      throw Object.assign(new Error("현재 구매할 수 없는 상태의 판매글입니다."), { code: 400 });
+      throw Object.assign(
+        new Error("현재 구매할 수 없는 상태의 판매글입니다."),
+        { code: 400 }
+      );
     if (listing.quantity < quantity)
       throw Object.assign(new Error("재고가 부족합니다."), { code: 400 });
 
@@ -100,7 +103,9 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       data: { quantity: { decrement: quantity } },
     });
     if (decCard.count === 0) {
-      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), { code: 409 });
+      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), {
+        code: 409,
+      });
     }
     // 4) 판매글 수량 차감
     const decListing = await tx.listing.updateMany({
@@ -108,7 +113,9 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       data: { quantity: { decrement: quantity } },
     });
     if (decListing.count === 0) {
-      throw Object.assign(new Error("동시에 변경되어 구매할 수 없습니다."), { code: 409 });
+      throw Object.assign(new Error("동시에 변경되어 구매할 수 없습니다."), {
+        code: 409,
+      });
     }
     // 5) 판매글 상태 업데이트 (수량 0 -> SOLD_OUT)
     let listingAfter = await tx.listing.findUnique({
@@ -140,8 +147,18 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
     // 7) 포인트 증감 기록
     await tx.point.createMany({
       data: [
-        { id: randomUUID(), userId: buyerId, amount: -totalAmount, reason: "PURCHASE" },
-        { id: randomUUID(), userId: listing.sellerId, amount: +totalAmount, reason: "SALE" },
+        {
+          id: randomUUID(),
+          userId: buyerId,
+          amount: -totalAmount,
+          reason: "PURCHASE",
+        },
+        {
+          id: randomUUID(),
+          userId: listing.sellerId,
+          amount: +totalAmount,
+          reason: "SALE",
+        },
       ],
       skipDuplicates: true,
     });
@@ -165,7 +182,8 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         {
           id: randomUUID(),
           userId: listing.sellerId,
-          type: listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
+          type:
+            listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
           payload: {
             listingId,
             transactionId: transaction.id,
@@ -197,12 +215,18 @@ export async function runCreateExchangeOfferTransaction({
       });
 
     if (listing.sellerId === offeredById) {
-      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
+      throw Object.assign(
+        new Error("자신의 판매글에는 교환을 신청할 수 없습니다."),
+        { code: 400 }
+      );
     }
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
-      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
-        code: 400,
-      });
+      throw Object.assign(
+        new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."),
+        {
+          code: 400,
+        }
+      );
     }
 
     // 2) 동일 사용자의 중복 PENDING 신청 방지
@@ -273,8 +297,12 @@ export async function updateListing({ sellerId, listingId, payload }) {
     data: {
       ...(payload.price !== undefined ? { price: payload.price } : {}),
       ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
-      ...(payload.preferredGrade !== undefined ? { preferredGrade: payload.preferredGrade } : {}),
-      ...(payload.preferredGenre !== undefined ? { preferredGenre: payload.preferredGenre } : {}),
+      ...(payload.preferredGrade !== undefined
+        ? { preferredGrade: payload.preferredGrade }
+        : {}),
+      ...(payload.preferredGenre !== undefined
+        ? { preferredGenre: payload.preferredGenre }
+        : {}),
       ...(payload.preferredDescription !== undefined
         ? { preferredDescription: payload.preferredDescription }
         : {}),
@@ -300,7 +328,13 @@ export async function cancelListing({ sellerId, listingId }) {
     // 1) 판매글 검증
     const listing = await tx.listing.findUnique({
       where: { id: listingId },
-      select: { id: true, sellerId: true, status: true, quantity: true, myPhotoCardId: true },
+      select: {
+        id: true,
+        sellerId: true,
+        status: true,
+        quantity: true,
+        myPhotoCardId: true,
+      },
     });
 
     if (!listing) {
@@ -362,12 +396,17 @@ export async function getMarketplaceListings({
   cursor,
   take = 15,
 }) {
-  const where = { userId };
-
-  if (search) where.title = { contains: search, mode: "insensitive" };
-  if (grade) where.grade = grade;
-  if (genre) where.genre = genre;
-  if (soldOut !== undefined) where.quantity = soldOut ? 0 : { gt: 0 };
+  const where = {
+    sellerId: userId,
+    photoCards: {
+      some: {
+        ...(search && { title: { contains: search, mode: "insensitive" } }),
+        ...(grade && { grade }),
+        ...(genre && { genre }),
+        ...(soldOut !== undefined && { quantity: soldOut ? 0 : { gt: 0 } }),
+      },
+    },
+  };
   const orderBy = {};
   if (sortBy) orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
   else orderBy["createdAt"] = "desc";
@@ -375,7 +414,7 @@ export async function getMarketplaceListings({
   const listings = await prisma.listing.findMany({
     where,
     include: {
-      myPhotoCard: true,
+      photoCards: true,
       seller: { select: { id: true, name: true } },
     },
     orderBy,
@@ -397,7 +436,7 @@ export async function getMyPhotoCards(
   sortBy,
   sortOrder,
   cursor,
-  take = 6,
+  take = 6
 ) {
   const where = { userId };
 
@@ -439,10 +478,24 @@ export async function createListing({
   preferredDescription,
   sellerId,
 }) {
+  if (!myPhotoCardId) {
+    const error = new Error("myPhotoCardId가 필요합니다.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const card = await prisma.myPhotoCard.findUnique({
+    where: { id: myPhotoCardId },
+  });
+  if (!card)
+    throw Object.assign(new Error("해당 포토카드를 찾을 수 없습니다."), {
+      statusCode: 404,
+    });
+
   return prisma.listing.create({
     data: {
       id: randomUUID(),
-      myPhotoCard: { connect: { id: myPhotoCardId } },
+      photoCards: { connect: [{ id: myPhotoCardId }] },
       seller: { connect: { id: sellerId } },
       price,
       quantity,
@@ -452,6 +505,6 @@ export async function createListing({
       preferredDescription,
       status: "FOR_SALE",
     },
-    include: { myPhotoCard: true, seller: true },
+    include: { photoCards: true, seller: true },
   });
 }

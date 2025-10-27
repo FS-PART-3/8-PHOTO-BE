@@ -71,8 +71,28 @@ export const getMyPhotoCardById = asyncHandler(async (req, res) => {
 
 // 판매 등록
 export const createListing = asyncHandler(async (req, res) => {
-  const sellerId = req.user?.id ?? req.body.sellerId;
+  const sellerId = req.user?.id ?? req.query.userId;
+  if (!sellerId)
+    return res
+      .status(401)
+      .json({ success: false, message: "로그인이 필요합니다." });
+
   const data = { ...req.body, sellerId };
-  const listing = await service.createListingService(data);
-  res.status(201).json({ success: true, message: "판매 등록이 완료되었습니다.", listing });
+
+  try {
+    const listing = await service.createListingService(data);
+    res.status(201).json({
+      success: true,
+      message: "판매 등록이 완료되었습니다.",
+      listing,
+    });
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    throw error;
+  }
 });
