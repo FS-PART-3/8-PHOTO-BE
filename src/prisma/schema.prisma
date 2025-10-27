@@ -39,7 +39,7 @@ model User {
 enum Grade {
     COMMON
     RARE
-    SUPERRARE
+    SUPER_RARE
     LEGENDARY
 }
 
@@ -67,7 +67,7 @@ model MyPhotoCard {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    listings Listing[]
+    listing Listing[] @relation("PhotoCardListings")
 }
 
 enum ListingStatus {
@@ -78,11 +78,9 @@ enum ListingStatus {
 }
 
 model Listing {
-    id            String      @id
-    seller        User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-    sellerId      String
-    myPhotoCard   MyPhotoCard @relation(fields: [myPhotoCardId], references: [id], onDelete: Cascade)
-    myPhotoCardId String
+    id       String @id
+    seller   User   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+    sellerId String
 
     price        Int
     quantity     Int
@@ -97,6 +95,7 @@ model Listing {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    photoCards     MyPhotoCard[]   @relation("PhotoCardListings")
     transactions   Transaction[]
     exchangeOffers ExchangeOffer[]
 }

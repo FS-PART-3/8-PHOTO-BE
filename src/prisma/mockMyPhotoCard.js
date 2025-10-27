@@ -1,6 +1,6 @@
 const mockMyPhotoCard = (userId, count = 100) => {
   const photoName = ["스페인 여행", "우리집 앞마당", "How Far I'll Go"];
-  const photoGrade = ["COMMON", "RARE", "SUPERRARE", "LEGENDARY"];
+  const photoGrade = ["COMMON", "RARE", "SUPER_RARE", "LEGENDARY"];
   const photoGenre = ["풍경", "인물", "도시", "자연"];
   const photoImages = ["photo_1.svg", "photo_2.svg", "photo_3.svg"];
 

@@ -336,7 +336,7 @@ export async function cancelListing({ sellerId, listingId }) {
       select: { id: true, status: true, quantity: true, myPhotoCardId: true },
     });
 
-    // 3) 알림 생성
+    // 4) 알림 생성
     await tx.notification.create({
       data: {
         id: randomUUID(),

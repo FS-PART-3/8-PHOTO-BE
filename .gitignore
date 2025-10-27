@@ -8,3 +8,6 @@
 
 # 빌드 출력물
 /node_modules/
+
+# 히스토리 파일
+.history/
