@@ -335,14 +335,7 @@ export async function cancelListing({ sellerId, listingId }) {
       where: { id: listingId },
       select: { id: true, status: true, quantity: true, myPhotoCardId: true },
     });
-    // 3) 보유 포토카드 수량 복원
-    // 아직 팔리지 않은 남은 quantity 만큼 복원
-    if ((cancelled.quantity ?? 0) > 0) {
-      await tx.myPhotoCard.update({
-        where: { id: cancelled.myPhotoCardId },
-        data: { quantity: { increment: cancelled.quantity } },
-      });
-    }
+
     // 4) 알림 생성
     await tx.notification.create({
       data: {
