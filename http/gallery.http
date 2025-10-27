@@ -1,4 +1,51 @@
-// 각자 입맛에 맞게 변경해서 사용하기.
-### 내 갤러리 조회
-GET http://localhost:4000/api/gallery?page=1
-Authorization: Bearer {{accessToken}}
+### 마이갤러리 포토카드 조회 (기본)
+GET http://localhost:4000/api/gallery
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 마이갤러리 포토카드 조회 (필터 및 정렬)
+GET http://localhost:4000/api/gallery?page=0&size=12&grade=RARE&genre=풍경&sortBy=createdAt&sortOrder=desc
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 마이갤러리 포토카드 조회 (검색)
+GET http://localhost:4000/api/gallery?search=하늘
+Content-Type: application/json
+Authorization: Bearer YOUR_ACCESS_TOKEN
+
+### 포토카드 생성 (JSON 테스트용 - 실제로는 multipart/form-data 사용)
+# POST http://localhost:4000/api/gallery
+# Content-Type: application/json
+# Authorization: Bearer YOUR_ACCESS_TOKEN
+# 
+# {
+#   "title": "푸른하늘",
+#   "grade": "RARE",
+#   "genre": "풍경",
+#   "price": 1000,
+#   "quantity": 2,
+#   "description": "천고마비"
+# }
+# 주의: 
+# 1. 실제로는 image 파일과 함께 multipart/form-data로 전송해야 합니다.
+# 2. Authorization 헤더에 액세스 토큰 필요
+# 3. 포토카드 생성 시 가격의 10% (반올림)가 수수료로 차감됩니다
+
+### 포토카드 생성 (Postman이나 Thunder Client 사용 권장)
+# POST http://localhost:4000/api/gallery
+# Content-Type: multipart/form-data
+# Authorization: Bearer YOUR_ACCESS_TOKEN
+# 
+# Form Data:
+# - title: 푸른하늘
+# - grade: RARE
+# - genre: 풍경
+# - price: 1000
+# - quantity: 2
+# - description: 천고마비
+# - image: [파일 선택]
+# 
+# 주의: 
+# 1. Authorization 헤더에 액세스 토큰 필요
+# 2. 포토카드 생성 시 가격의 10% (반올림)가 수수료로 차감됩니다
+# 3. 포인트가 부족하면 생성할 수 없습니다

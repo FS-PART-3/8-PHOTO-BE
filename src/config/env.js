@@ -8,6 +8,8 @@ const schema = z.object({
   CORS_ORIGIN: z.string().default("*"),
   JWT_SECRET: z.string().min(10, "JWT_SECRET is required (>=10 chars)"),
   JWT_EXPIRES_IN: z.string().default("7d"),
+  JWT_JWT_ACCESS_EXPIRES_IN: z.string().default("7d"),
+  JWT_JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
   // DB
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
   // AWS S3
