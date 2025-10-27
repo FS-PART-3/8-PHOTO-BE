@@ -9,13 +9,11 @@ import mockExchangeOffer from "./mockExchangeOffer.js";
 import mockTransaction from "./mockTransaction.js";
 import mockPoint from "./mockPoint.js";
 import mockNotification from "./mockNotification.js";
-import mockHistory from "./mockHistory.js";
+// import mockHistory from "./mockHistory.js";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // await prisma.user.create({ data: { name: "Alice" } });
-
   // 기존 데이터 삭제
   // await prisma.history.deleteMany();
   await prisma.notification.deleteMany();
@@ -26,8 +24,7 @@ async function main() {
   await prisma.myPhotoCard.deleteMany();
   await prisma.user.deleteMany();
 
-  //mock 데이터 삽입
-  // 이메일 로그인 사용자 -> 비밀번호 해싱
+  // 유저 생성 (비밀번호 해싱)
   const usersWithHashedPw = await Promise.all(
     mockUser.map(async (u) => {
       if (u.provider === "local" && u.password) {
@@ -43,62 +40,65 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // 유저별 데이터 생성
-  const allPhotoCards = [];
-  const allListings = [];
-
+  // 유저별 MyPhotoCard, Listing 생성
   for (const user of usersWithHashedPw) {
     const photoCards = mockMyPhotoCard(user.id, 100);
+    await prisma.myPhotoCard.createMany({
+      data: photoCards,
+      skipDuplicates: true,
+    });
+
     const listings = mockListing(user.id, photoCards, 50);
 
-    allPhotoCards.push(...photoCards);
-    allListings.push(...listings);
+    for (const listing of listings) {
+      await prisma.listing.create({
+        data: {
+          id: listing.id,
+          sellerId: listing.sellerId,
+          price: listing.price,
+          quantity: listing.quantity,
+          initQuantity: listing.initQuantity,
+          status: listing.status,
+          preferredGrade: listing.preferredGrade,
+          preferredGenre: listing.preferredGenre,
+          preferredDescription: listing.preferredDescription,
+          photoCards: {
+            connect: [{ id: listing.myPhotoCardId }],
+          },
+        },
+      });
+    }
   }
 
-  await prisma.myPhotoCard.createMany({
-    data: allPhotoCards,
-    skipDuplicates: true,
-  });
-
-  await prisma.listing.createMany({
-    data: allListings,
-    skipDuplicates: true,
-  });
-
+  const allListings = await prisma.listing.findMany();
   const allExchangeOffers = mockExchangeOffer(
     usersWithHashedPw,
     allListings,
     100
   );
-
-  await prisma.exchangeOffer.createMany({
-    data: allExchangeOffers,
-    skipDuplicates: true,
-  });
+  for (const offer of allExchangeOffers) {
+    await prisma.exchangeOffer.create({ data: offer });
+  }
 
   const allTransactions = mockTransaction(usersWithHashedPw, allListings, 50);
-  await prisma.transaction.createMany({
-    data: allTransactions,
-    skipDuplicates: true,
-  });
+  for (const txn of allTransactions) {
+    await prisma.transaction.create({ data: txn });
+  }
 
   const allPoints = mockPoint(usersWithHashedPw, 50);
-  await prisma.point.createMany({
-    data: allPoints,
-    skipDuplicates: true,
-  });
+  for (const point of allPoints) {
+    await prisma.point.create({ data: point });
+  }
 
   const allNotifications = mockNotification(usersWithHashedPw, 25);
-  await prisma.notification.createMany({
-    data: allNotifications,
-    skipDuplicates: true,
-  });
+  for (const note of allNotifications) {
+    await prisma.notification.create({ data: note });
+  }
 
   // const allHistories = mockHistory(usersWithHashedPw, 50);
-  // await prisma.history.createMany({
-  //   data: allHistories,
-  //   skipDuplicates: true,
-  // });
+  // for (const hist of allHistories) {
+  //   await prisma.history.create({ data: hist });
+  // }
 
   console.log("Seeding completed.");
 }
