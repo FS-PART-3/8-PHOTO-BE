@@ -1,5 +1,5 @@
 const mockListing = (userId, myPhotoCards, count = 50) => {
-  const preferredGrades = ["COMMON", "RARE", "SUPERRARE", "LEGENDARY"];
+  const preferredGrades = ["COMMON", "RARE", "SUPER_RARE", "LEGENDARY"];
   const preferredGenres = ["풍경", "인물", "도시", "자연"];
   const preferredDescriptions = [
     "교환 희망합니다.",

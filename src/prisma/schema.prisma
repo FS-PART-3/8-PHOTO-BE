@@ -39,7 +39,7 @@ model User {
 enum Grade {
     COMMON
     RARE
-    SUPERRARE
+    SUPER_RARE
     LEGENDARY
 }
 
