@@ -103,7 +103,16 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         select: { id: true, quantity: true, status: true },
       });
     }
-
+    // 나의 포토카드 SOLD_OUT 이면 소프트삭제
+    await tx.myPhotoCard.updateMany({
+      where: {
+        id: sellerSourceCard.id,
+        userId: listing.sellerId,
+        isDeleted: false,
+        quantity: 0,
+      },
+      data: { isDeleted: true },
+    });
     // 6) 거래 생성
     const transaction = await tx.transaction.create({
       data: { id: randomUUID(), buyerId, listingId, totalAmount, quantity },
