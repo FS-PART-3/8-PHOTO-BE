@@ -9,6 +9,43 @@ async function getUserPointBalance(tx, userId) {
   });
   return Number(agg._sum.amount || 0);
 }
+async function addToBuyerMyPhotoCard(tx, { buyerId, listing, quantity }) {
+  const { title, imgUrl, grade, genre } = listing.myPhotoCard;
+
+  const baseWhere = {
+    userId: buyerId,
+    title,
+    grade,
+    genre,
+    imgUrl,
+  };
+
+  const existing = await tx.myPhotoCard.findFirst({
+    where: baseWhere,
+    select: { id: true },
+  });
+
+  if (existing) {
+    await tx.myPhotoCard.update({
+      where: { id: existing.id },
+      data: { quantity: { increment: quantity } },
+    });
+  } else {
+    await tx.myPhotoCard.create({
+      data: {
+        id: randomUUID(),
+        userId: buyerId,
+        title,
+        imgUrl,
+        grade,
+        genre,
+        price: 0,
+        description: "",
+        quantity,
+      },
+    });
+  }
+}
 
 export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
   return await prisma.$transaction(async (tx) => {
@@ -18,9 +55,18 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       select: {
         id: true,
         sellerId: true,
+        myPhotoCardId: true,
         price: true,
         quantity: true,
         status: true,
+        myPhotoCard: {
+          select: {
+            title: true,
+            imgUrl: true,
+            grade: true,
+            genre: true,
+          },
+        },
       },
     });
 
@@ -44,42 +90,65 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
     if (buyerBalance < totalAmount)
       throw Object.assign(new Error("포인트가 부족합니다."), { code: 400 });
 
-    // 3) 거래 생성
+    // 3) 판매자 MyPhotoCard 보유 수량 차감
+    const decCard = await tx.myPhotoCard.updateMany({
+      where: {
+        id: listing.myPhotoCardId,
+        userId: listing.sellerId,
+        quantity: { gte: quantity },
+      },
+      data: { quantity: { decrement: quantity } },
+    });
+    if (decCard.count === 0) {
+      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), { code: 409 });
+    }
+    // 4) 판매글 수량 차감
+    const decListing = await tx.listing.updateMany({
+      where: { id: listingId, status: "FOR_SALE", quantity: { gte: quantity } },
+      data: { quantity: { decrement: quantity } },
+    });
+    if (decListing.count === 0) {
+      throw Object.assign(new Error("동시에 변경되어 구매할 수 없습니다."), { code: 409 });
+    }
+    // 5) 판매글 상태 업데이트 (수량 0 -> SOLD_OUT)
+    let listingAfter = await tx.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true, quantity: true, status: true },
+    });
+    if (listingAfter.quantity === 0 && listingAfter.status !== "SOLD_OUT") {
+      listingAfter = await tx.listing.update({
+        where: { id: listingId },
+        data: { status: "SOLD_OUT" },
+        select: { id: true, quantity: true, status: true },
+      });
+    }
+    // 나의 포토카드 SOLD_OUT 이면 소프트삭제
+    await tx.myPhotoCard.updateMany({
+      where: {
+        id: listing.myPhotoCardId,
+        userId: listing.sellerId,
+        isDeleted: false,
+        quantity: 0,
+      },
+      data: { isDeleted: true },
+    });
+    // 6) 거래 생성
     const transaction = await tx.transaction.create({
       data: { id: randomUUID(), buyerId, listingId, totalAmount, quantity },
     });
 
-    // 4) 포인트 증감 기록
+    // 7) 포인트 증감 기록
     await tx.point.createMany({
       data: [
-        {
-          id: randomUUID(),
-          userId: buyerId,
-          amount: -totalAmount,
-          reason: "PURCHASE",
-        },
-        {
-          id: randomUUID(),
-          userId: listing.sellerId,
-          amount: +totalAmount,
-          reason: "SALE",
-        },
+        { id: randomUUID(), userId: buyerId, amount: -totalAmount, reason: "PURCHASE" },
+        { id: randomUUID(), userId: listing.sellerId, amount: +totalAmount, reason: "SALE" },
       ],
       skipDuplicates: true,
     });
+    // 구매자 보유 포토카드 추가
+    await addToBuyerMyPhotoCard(tx, { buyerId, listing, quantity });
 
-    // 5) 판매글 수량/상태 갱신
-    const leftQty = listing.quantity - quantity;
-    const listingAfter = await tx.listing.update({
-      where: { id: listingId },
-      data: {
-        quantity: leftQty,
-        status: leftQty <= 0 ? "SOLD_OUT" : "FOR_SALE",
-      },
-      select: { id: true, quantity: true, status: true },
-    });
-
-    // 6) 알림 생성
+    // 8) 알림 생성
     await tx.notification.createMany({
       data: [
         {
@@ -96,7 +165,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         {
           id: randomUUID(),
           userId: listing.sellerId,
-          type: leftQty <= 0 ? "SOLD_OUT" : "SALE_COMPLETED",
+          type: listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
           payload: {
             listingId,
             transactionId: transaction.id,
@@ -227,38 +296,58 @@ export async function updateListing({ sellerId, listingId, payload }) {
 
 // 판매 내리기 (판매 취소)
 export async function cancelListing({ sellerId, listingId }) {
-  // 1) 판매글 검증
-  const listing = await prisma.listing.findUnique({
-    where: { id: listingId },
-    select: { id: true, sellerId: true, status: true },
+  return await prisma.$transaction(async (tx) => {
+    // 1) 판매글 검증
+    const listing = await tx.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true, sellerId: true, status: true, quantity: true, myPhotoCardId: true },
+    });
+
+    if (!listing) {
+      const err = new Error("존재하지 않는 판매글입니다.");
+      err.code = 404;
+      throw err;
+    }
+
+    if (listing.sellerId !== sellerId) {
+      const err = new Error("본인 판매글만 취소할 수 있습니다.");
+      err.code = 403;
+      throw err;
+    }
+
+    if (listing.status !== "FOR_SALE" && listing.status !== "FOR_EXCHANGE") {
+      const err = new Error("이미 취소되었거나 판매 완료된 글입니다.");
+      err.code = 400;
+      throw err;
+    }
+
+    // 2) 상태 업데이트
+    const updated = await tx.listing.updateMany({
+      where: { id: listingId, status: { in: ["FOR_SALE", "FOR_EXCHANGE"] } },
+      data: { status: "CANCELLED" },
+    });
+    if (updated.count === 0) {
+      const e = new Error("동시에 변경되어 취소할 수 없습니다.");
+      e.code = 409;
+      throw e;
+    }
+    const cancelled = await tx.listing.findUnique({
+      where: { id: listingId },
+      select: { id: true, status: true, quantity: true, myPhotoCardId: true },
+    });
+
+    // 3) 알림 생성
+    await tx.notification.create({
+      data: {
+        id: randomUUID(),
+        userId: sellerId,
+        type: "LISTING_CANCELLED",
+        payload: { listingId: cancelled.id, restoredQty: cancelled.quantity },
+      },
+    });
+
+    return cancelled;
   });
-
-  if (!listing) {
-    const err = new Error("존재하지 않는 판매글입니다.");
-    err.code = 404;
-    throw err;
-  }
-
-  if (listing.sellerId !== sellerId) {
-    const err = new Error("본인 판매글만 취소할 수 있습니다.");
-    err.code = 403;
-    throw err;
-  }
-
-  if (listing.status !== "FOR_SALE" && listing.status !== "FOR_EXCHANGE") {
-    const err = new Error("이미 취소되었거나 판매 완료된 글입니다.");
-    err.code = 400;
-    throw err;
-  }
-
-  // 2) 상태 업데이트
-  const cancelled = await prisma.listing.update({
-    where: { id: listingId },
-    data: { status: "CANCELLED" },
-    select: { id: true, status: true },
-  });
-
-  return cancelled;
 }
 
 // 마켓플레이스 판매 카드 목록 조회 +검색/필터/정렬
