@@ -6,7 +6,7 @@ import authRouter from "./auth/index.js";
 import productsRouter from "./products/index.js";
 import salesRouter from "./sales/index.js";
 // import exchangesRouter from "./exchanges/index.js";
-// import notificationsRouter from "./notifications/index.js";
+import notificationsRouter from "./notifications/index.js";
 import galleryRouter from "./gallery/index.js";
 // import pointsRouter from "./points/index.js";
 
@@ -17,7 +17,7 @@ router.use("/auth", authRouter);
 router.use("/", productsRouter);
 router.use("/", salesRouter);
 // router.use("/exchanges", exchangesRouter);
-// router.use("/notifications", notificationsRouter);
+router.use("/", notificationsRouter);
 router.use("/gallery", galleryRouter);
 // router.use("/points", pointsRouter);
 
