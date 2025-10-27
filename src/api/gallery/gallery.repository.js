@@ -4,7 +4,19 @@ import dayjs from "dayjs";
 
 // 마이갤러리 포토카드 조회
 export async function getMyPhotoCards(userId, params) {
-  const { page = 0, size = 12, search, grade, genre, sortBy = "createdAt", sortOrder = "desc" } = params;
+  const { 
+    page = 0, 
+    size = 12, 
+    search, 
+    grade, 
+    genre, 
+    sortBy = "createdAt", 
+    sortOrder = "desc" 
+  } = params;
+
+  // 숫자로 명시적 변환
+  const pageNum = Number(page);
+  const sizeNum = Number(size);
 
   const where = {
     userId,
@@ -41,8 +53,8 @@ export async function getMyPhotoCards(userId, params) {
   const myPhotoCards = await prisma.myPhotoCard.findMany({
     where,
     orderBy,
-    skip: page * size,
-    take: size,
+    skip: pageNum * sizeNum,
+    take: sizeNum,
   });
 
   // 전체 개수 조회
@@ -51,10 +63,10 @@ export async function getMyPhotoCards(userId, params) {
   return {
     data: myPhotoCards,
     pagination: {
-      page,
-      size,
+      page: pageNum,
+      size: sizeNum,
       total,
-      totalPages: Math.ceil(total / size),
+      totalPages: Math.ceil(total / sizeNum),
     },
   };
 }
