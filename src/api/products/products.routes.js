@@ -18,34 +18,240 @@ const router = Router();
  *   description: 마켓플레이스 API
  */
 
+/**
+ * @swagger
+ * /marketplace/{listingId}/purchase:
+ *   post:
+ *     summary: 포토카드 구매
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [quantity]
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 1
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: 구매 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string, example: "구매가 완료되었습니다." }
+ *                 transactionId: { type: string, example: "a2636ac4-..." }
+ *                 totalAmount: { type: integer, example: 500 }
+ *       400:
+ *         description: 잘못된 요청 (본인 판매글 / 구매 불가 상태 / 포인트 부족 등)
+ *       401:
+ *         description: 인증 실패 (토큰 누락/만료)
+ *       404:
+ *         description: 존재하지 않는 판매글
+ *       409:
+ *         description: 동시성/재고 충돌 (판매자 보유 수량 부족, 동시 변경 등)
+ *       500:
+ *         description: 서버 내부 오류 (원본 포토카드 조회 실패 등)
+ */
 router.post(
   "/marketplace/:listingId/purchase",
   verifyAccessToken,
   validate(purchaseSchema),
-  controller.purchase
+  controller.purchase,
 );
-
+/**
+ * @swagger
+ * /marketplace/{listingId}/exchanges:
+ *   post:
+ *     summary: 교환 신청 생성
+ *     description: 특정 판매글에 대해 교환 신청을 생성합니다.
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         description: 교환 신청 대상 판매글 ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               quantity:
+ *                 type: integer
+ *                 description: 교환 희망 수량
+ *                 minimum: 1
+ *                 example: 1
+ *               offeredDescription:
+ *                 type: string
+ *                 description: 교환 제안 상세 설명(제안 카드/조건 등)
+ *                 example: 제 포토카드 A(RARE) 1장과 교환 원해요.
+ *     responses:
+ *       201:
+ *         description: 교환 신청 생성 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id: { type: string, example: 1c5b7e4e-e9b8-4b8e-bd39-2a9c3b7b1a91 }
+ *                 listingId: { type: string, example: listing-123 }
+ *                 status: { type: string, example: PENDING }
+ *                 offeredById: { type: string, example: user-456 }
+ *                 createdAt: { type: string, example: 2025-10-28T05:20:00.000Z }
+ *       400:
+ *         description: 잘못된 요청 (유효성 오류 등)
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 존재하지 않는 판매글
+ *       409:
+ *         description: 동시성/상태 충돌
+ */
 // 교환 신청 생성
 router.post(
   "/marketplace/:listingId/exchanges",
   verifyAccessToken,
   validate(createExchangeSchema),
-  controller.createExchangeOffer
+  controller.createExchangeOffer,
 );
+/**
+ * @swagger
+ * /marketplace/{listingId}:
+ *   patch:
+ *     summary: 판매글 수정
+ *     description: 가격/수량/선호 조건 등을 수정합니다.
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         description: 수정할 판매글 ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               price:
+ *                 type: integer
+ *                 minimum: 0
+ *                 example: 30
+ *               quantity:
+ *                 type: integer
+ *                 minimum: 0
+ *                 example: 5
+ *               preferredGrade:
+ *                 type: string
+ *                 description: 선호 등급
+ *                 enum: [COMMON, RARE, SUPER_RARE, LEGENDARY]
+ *                 example: RARE
+ *               preferredGenre:
+ *                 type: string
+ *                 description: 선호 장르
+ *                 example: 도시
+ *               preferredDescription:
+ *                 type: string
+ *                 description: 교환/거래 선호 상세
+ *                 example: 가격 인하, 빠른 거래 희망
+ *     responses:
+ *       200:
+ *         description: 수정 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id: { type: string, example: listing-123 }
+ *                 price: { type: integer, example: 30 }
+ *                 quantity: { type: integer, example: 5 }
+ *                 status: { type: string, example: FOR_SALE }
+ *                 preferredGrade: { type: string, example: RARE }
+ *                 preferredGenre: { type: string, example: 도시 }
+ *                 preferredDescription: { type: string, example: 가격 인하, 빠른 거래 희망 }
+ *                 updatedAt: { type: string, example: 2025-10-28T05:20:00.000Z }
+ *       400:
+ *         description: 잘못된 요청
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음 (본인 판매글 아님)
+ *       404:
+ *         description: 존재하지 않는 판매글
+ */
 // 판매 수정
 router.patch(
   "/marketplace/:listingId",
   verifyAccessToken,
   validate(updateListingSchema),
-  controller.updateListing
+  controller.updateListing,
 );
-
+/**
+ * @swagger
+ * /marketplace/{listingId}/cancel:
+ *   patch:
+ *     summary: 판매 취소
+ *     description: 진행 중인 판매글을 취소합니다. (상태가 FOR_SALE 또는 FOR_EXCHANGE일 때만 가능)
+ *     tags: [Marketplace]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         description: 취소할 판매글 ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 취소 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 판매가 취소되었습니다.
+ *                 listingId:
+ *                   type: string
+ *                   example: listing-123
+ *                 status:
+ *                   type: string
+ *                   example: CANCELLED
+ *       400:
+ *         description: 이미 취소/판매 완료된 글
+ *       401:
+ *         description: 인증 실패
+ *       403:
+ *         description: 권한 없음 (본인 판매글 아님)
+ *       404:
+ *         description: 존재하지 않는 판매글
+ */
 // 판매 내리기 (판매 취소)
-router.patch(
-  "/marketplace/:listingId/cancel",
-  verifyAccessToken,
-  controller.cancelListing
-);
+router.patch("/marketplace/:listingId/cancel", verifyAccessToken, controller.cancelListing);
 
 /**
  * @swagger
@@ -182,10 +388,7 @@ router.get("/marketplace/my-photo-cards", controller.getMyPhotoCards);
  *       404:
  *         description: 포토카드를 찾을 수 없음
  */
-router.get(
-  "/marketplace/my-photo-cards/:myPhotoCardId",
-  controller.getMyPhotoCardById
-);
+router.get("/marketplace/my-photo-cards/:myPhotoCardId", controller.getMyPhotoCardById);
 
 /**
  * @swagger
@@ -244,7 +447,7 @@ router.post(
   "/marketplace/listings",
   verifyAccessToken,
   validate(createListingSchema),
-  controller.createListing
+  controller.createListing,
 );
 
 export default router;
