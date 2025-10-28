@@ -69,7 +69,7 @@ router.post(
   "/marketplace/:listingId/purchase",
   verifyAccessToken,
   validate(purchaseSchema),
-  controller.purchase,
+  controller.purchase
 );
 /**
  * @swagger
@@ -130,7 +130,7 @@ router.post(
   "/marketplace/:listingId/exchanges",
   verifyAccessToken,
   validate(createExchangeSchema),
-  controller.createExchangeOffer,
+  controller.createExchangeOffer
 );
 /**
  * @swagger
@@ -206,7 +206,7 @@ router.patch(
   "/marketplace/:listingId",
   verifyAccessToken,
   validate(updateListingSchema),
-  controller.updateListing,
+  controller.updateListing
 );
 /**
  * @swagger
@@ -251,7 +251,11 @@ router.patch(
  *         description: 존재하지 않는 판매글
  */
 // 판매 내리기 (판매 취소)
-router.patch("/marketplace/:listingId/cancel", verifyAccessToken, controller.cancelListing);
+router.patch(
+  "/marketplace/:listingId/cancel",
+  verifyAccessToken,
+  controller.cancelListing
+);
 
 /**
  * @swagger
@@ -310,6 +314,38 @@ router.patch("/marketplace/:listingId/cancel", verifyAccessToken, controller.can
  *     responses:
  *       200:
  *         description: 성공적으로 판매 카드 목록을 반환함
+ *         content:
+ *           application/json:
+ *             example:
+ *               data:
+ *                 - id: "07d1..."
+ *                   sellerId: "550e..."
+ *                   price: 50
+ *                   quantity: 1
+ *                   initQuantity: 1
+ *                   status: "FOR_SALE"
+ *                   preferredGrade: "RARE"
+ *                   preferredGenre: "풍경"
+ *                   preferredDescription: "선호 카드 설명"
+ *                   isDeleted: false
+ *                   createdAt: "2025-10-27T09:14:06.209Z"
+ *                   updatedAt: "2025-10-27T09:14:06.209Z"
+ *                   photoCards:
+ *                     - id: "photo-550e..."
+ *                       userId: "550e..."
+ *                       title: "스페인 여행"
+ *                       grade: "COMMON"
+ *                       genre: "풍경"
+ *                       price: 5
+ *                       quantity: 9
+ *                       imgUrl: "images/photo_1.svg"
+ *                       description: "COMMON 등급의 풍경 테마 카드입니다."
+ *                       isDeleted: false
+ *                       createdAt: "2025-10-27T08:41:35.557Z"
+ *                       updatedAt: "2025-10-27T08:41:35.557Z"
+ *                   seller:
+ *                     id: "550e..."
+ *                     name: "유디"
  *       500:
  *         description: 서버 오류
  */
@@ -364,6 +400,25 @@ router.get("/marketplace", controller.getMarketplaceListings);
  *     responses:
  *       200:
  *         description: 내 포토카드 목록 반환
+ *         content:
+ *           application/json:
+ *             example:
+ *               data:
+ *                 - id: "photo-550e..."
+ *                   userId: "550e..."
+ *                   title: "How Far I'll Go"
+ *                   grade: "SUPER_RARE"
+ *                   genre: "도시"
+ *                   price: 85
+ *                   quantity: 3
+ *                   imgUrl: "images/photo_3.svg"
+ *                   description: "SUPER_RARE 등급의 도시 테마 카드입니다."
+ *                   isDeleted: false
+ *                   createdAt: "2025-10-27T08:43:27.712Z"
+ *                   updatedAt: "2025-10-27T08:43:27.712Z"
+ *                   user:
+ *                     id: "550e..."
+ *                     name: "수현"
  *       404:
  *         description: 사용자를 찾을 수 없음
  */
@@ -385,10 +440,31 @@ router.get("/marketplace/my-photo-cards", controller.getMyPhotoCards);
  *     responses:
  *       200:
  *         description: 포토카드 상세 정보 반환
+ *         content:
+ *           application/json:
+ *             example:
+ *               id: "photo-550e..."
+ *               userId: "550e..."
+ *               title: "How Far I'll Go"
+ *               grade: "SUPER_RARE"
+ *               genre: "도시"
+ *               price: 85
+ *               quantity: 3
+ *               imgUrl: "images/photo_3.svg"
+ *               description: "SUPER_RARE 등급의 도시 테마 카드입니다."
+ *               isDeleted: false
+ *               createdAt: "2025-10-27T08:43:27.712Z"
+ *               updatedAt: "2025-10-27T08:43:27.712Z"
+ *               user:
+ *                 id: "550e8400-e29b-41d4-a716-446655440005"
+ *                 name: "수현"
  *       404:
  *         description: 포토카드를 찾을 수 없음
  */
-router.get("/marketplace/my-photo-cards/:myPhotoCardId", controller.getMyPhotoCardById);
+router.get(
+  "/marketplace/my-photo-cards/:myPhotoCardId",
+  controller.getMyPhotoCardById
+);
 
 /**
  * @swagger
@@ -447,7 +523,7 @@ router.post(
   "/marketplace/listings",
   verifyAccessToken,
   validate(createListingSchema),
-  controller.createListing,
+  controller.createListing
 );
 
 export default router;
