@@ -14,3 +14,6 @@ export async function approveExchangeOffer({ sellerId, offerId }) {
     listingQuantity: listingAfter.quantity, // 남은수량 반환
   };
 }
+export async function rejectExchangeOffer({ sellerId, offerId }) {
+  return await repo.runRejectExchangeOfferTransaction({ sellerId, offerId });
+}

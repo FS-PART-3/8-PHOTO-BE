@@ -2,12 +2,15 @@
 ###
 @baseUrl = http://localhost:4000/api
 @listingId = listing-user1-11
-@token = {{accessToken}}
-
-@offerId = {{offerId}}
+@token = {{offerId}}
+@offerId = {accesstoken}
 # 교환 승인
 #
 PATCH {{baseUrl}}/marketplace/{{offerId}}/accept
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
+### 교환 거절
+PATCH http://localhost:4000/api/marketplace/{{offerId}}/reject
+Authorization: Bearer {{token}}
+Content-Type: application/json

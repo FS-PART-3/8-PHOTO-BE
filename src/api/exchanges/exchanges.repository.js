@@ -138,3 +138,49 @@ export async function runApproveExchangeOfferTransaction({ sellerId, offerId }) 
     return { offerAfter, listingAfter };
   });
 }
+
+// 교환 거절
+export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
+  return await prisma.$transaction(async (tx) => {
+    // 1) 오퍼 조회
+    const offer = await tx.exchangeOffer.findUnique({
+      where: { id: offerId },
+      select: { id: true, listingId: true, offeredById: true, status: true },
+    });
+    if (!offer) throw Object.assign(new Error("존재하지 않는 교환 신청입니다."), { code: 404 });
+
+    // 2) 판매글 조회 + 권한 확인
+    const listing = await tx.listing.findUnique({
+      where: { id: offer.listingId },
+      select: { id: true, sellerId: true, status: true },
+    });
+    if (!listing) throw Object.assign(new Error("관련 판매글이 존재하지 않습니다."), { code: 404 });
+    if (listing.sellerId !== sellerId)
+      throw Object.assign(new Error("해당 판매글의 판매자만 거절할 수 있습니다."), { code: 403 });
+
+    // 3) 상태 확인 (PENDING만 거절 가능)
+    const updated = await tx.exchangeOffer.updateMany({
+      where: { id: offer.id, status: "PENDING" },
+      data: { status: "REJECTED" },
+    });
+    if (updated.count === 0) {
+      throw Object.assign(new Error("이미 처리된 교환 신청입니다."), { code: 400 });
+    }
+
+    // 4) 알림 생성
+    await tx.notification.create({
+      data: {
+        id: crypto.randomUUID(),
+        userId: offer.offeredById,
+        type: "EXCHANGE_REJECTED",
+        payload: { listingId: listing.id, offerId: offer.id },
+      },
+    });
+
+    // 5) 반환
+    return {
+      offerAfter: { id: offer.id, listingId: offer.listingId, status: "REJECTED" },
+      listing: { id: listing.id, status: listing.status },
+    };
+  });
+}
