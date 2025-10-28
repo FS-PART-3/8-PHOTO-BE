@@ -1,16 +1,22 @@
 // 각자 입맛에 맞게 변경해서 사용하기.
 ###
 @baseUrl = http://localhost:4000/api
-@listingId = listing-user1-11
-@token = {{offerId}}
-@offerId = {accesstoken}
+@token = {accesstoken}
+@offerId = {offerId}
+
+
 # 교환 승인
 #
-PATCH {{baseUrl}}/marketplace/{{offerId}}/accept
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/accept
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 ### 교환 거절
-PATCH http://localhost:4000/api/marketplace/{{offerId}}/reject
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/reject
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 교환 취소 
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/cancel
 Authorization: Bearer {{token}}
 Content-Type: application/json

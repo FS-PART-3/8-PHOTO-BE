@@ -17,3 +17,7 @@ export async function approveExchangeOffer({ sellerId, offerId }) {
 export async function rejectExchangeOffer({ sellerId, offerId }) {
   return await repo.runRejectExchangeOfferTransaction({ sellerId, offerId });
 }
+
+export async function cancelExchangeOffer({ offeredById, offerId }) {
+  return await repo.runCancelExchangeOfferTransaction({ offeredById, offerId });
+}

@@ -84,7 +84,7 @@ export async function runApproveExchangeOfferTransaction({ sellerId, offerId }) 
     } else {
       await tx.myPhotoCard.create({
         data: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           userId: offer.offeredById,
           title: sourceCard.title,
           imgUrl: sourceCard.imgUrl,
@@ -121,7 +121,7 @@ export async function runApproveExchangeOfferTransaction({ sellerId, offerId }) 
     // 7) 알림 생성
     await tx.notification.create({
       data: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         userId: offer.offeredById, // 교환 신청자에게 알림
         type: "EXCHANGE_ACCEPTED",
         payload: { listingId: listing.id, offerId: offer.id },
@@ -170,7 +170,7 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
     // 4) 알림 생성
     await tx.notification.create({
       data: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         userId: offer.offeredById,
         type: "EXCHANGE_REJECTED",
         payload: { listingId: listing.id, offerId: offer.id },
@@ -181,6 +181,56 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
     return {
       offerAfter: { id: offer.id, listingId: offer.listingId, status: "REJECTED" },
       listing: { id: listing.id, status: listing.status },
+    };
+  });
+}
+
+// 교환 취소
+export async function runCancelExchangeOfferTransaction({ offeredById, offerId }) {
+  return await prisma.$transaction(async (tx) => {
+    // 1) 오퍼 조회
+    const offer = await tx.exchangeOffer.findUnique({
+      where: { id: offerId },
+      select: { id: true, listingId: true, offeredById: true, status: true },
+    });
+    if (!offer) throw Object.assign(new Error("존재하지 않는 교환 신청입니다."), { code: 404 });
+
+    // 2) 권한 확인
+    if (offer.offeredById !== offeredById)
+      throw Object.assign(new Error("본인 교환 신청만 취소할 수 있습니다."), { code: 403 });
+
+    // 3) 상태 변경
+    const updated = await tx.exchangeOffer.updateMany({
+      where: { id: offer.id, status: "PENDING" },
+      data: { status: "CANCELLED" },
+    });
+    if (updated.count === 0) {
+      throw Object.assign(new Error("이미 처리된 교환 신청입니다."), { code: 400 });
+    }
+
+    // 4) 알림 생성
+    const listing = await tx.listing.findUnique({
+      where: { id: offer.listingId },
+      select: { id: true, sellerId: true },
+    });
+    if (listing) {
+      await tx.notification.create({
+        data: {
+          id: randomUUID(),
+          userId: listing.sellerId,
+          type: "EXCHANGE_REJECTED",
+          payload: {
+            listingId: listing.id,
+            offerId: offer.id,
+            reason: "CANCELLED_BY_OFFERER",
+          },
+        },
+      });
+    }
+
+    // 5) 반환
+    return {
+      offerAfter: { id: offer.id, listingId: offer.listingId, status: "CANCELLED" },
     };
   });
 }
