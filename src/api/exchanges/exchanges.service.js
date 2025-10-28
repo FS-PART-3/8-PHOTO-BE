@@ -1,3 +1,23 @@
-// 예시파일입니다. 필요시 지우고 사용하세요.
-// TODO: implement
-// import * as repo from "./exchanges.repository.js";
+import * as repo from "./exchanges.repository.js";
+
+export async function approveExchangeOffer({ sellerId, offerId }) {
+  const { offerAfter, listingAfter } = await repo.runApproveExchangeOfferTransaction({
+    sellerId,
+    offerId,
+  });
+
+  return {
+    exchangeId: offerAfter.id,
+    listingId: offerAfter.listingId,
+    offerStatus: offerAfter.status, // ACCEPTED
+    listingStatus: listingAfter.status,
+    listingQuantity: listingAfter.quantity, // 남은수량 반환
+  };
+}
+export async function rejectExchangeOffer({ sellerId, offerId }) {
+  return await repo.runRejectExchangeOfferTransaction({ sellerId, offerId });
+}
+
+export async function cancelExchangeOffer({ offeredById, offerId }) {
+  return await repo.runCancelExchangeOfferTransaction({ offeredById, offerId });
+}
