@@ -47,6 +47,13 @@ export const cancelListing = asyncHandler(async (req, res) => {
   return res.status(200).json(result);
 });
 
+// 판매글 상세 조회
+export const getListingDetail = asyncHandler(async (req, res) => {
+  const { listingId } = req.params;
+  const data = await service.getListingDetail({ listingId });
+  res.status(200).json(data);
+});
+
 // 마켓플레이스 판매 카드 목록
 export const getMarketplaceListings = asyncHandler(async (req, res) => {
   const params = req.query; // 검색, 필터, 정렬, cursor, take 등
@@ -72,10 +79,7 @@ export const getMyPhotoCardById = asyncHandler(async (req, res) => {
 // 판매 등록
 export const createListing = asyncHandler(async (req, res) => {
   const sellerId = req.user?.id ?? req.query.userId;
-  if (!sellerId)
-    return res
-      .status(401)
-      .json({ success: false, message: "로그인이 필요합니다." });
+  if (!sellerId) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
 
   const data = { ...req.body, sellerId };
 

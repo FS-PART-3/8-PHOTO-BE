@@ -17,11 +17,7 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
     },
   };
 }
-export async function createExchangeOffer({
-  offeredById,
-  listingId,
-  offeredDescription,
-}) {
+export async function createExchangeOffer({ offeredById, listingId, offeredDescription }) {
   const offer = await repo.runCreateExchangeOfferTransaction({
     offeredById,
     listingId,
@@ -58,6 +54,45 @@ export async function cancelListing({ sellerId, listingId }) {
     status: cancelled.status,
   };
 }
+// 판매글 상세 조회
+export async function getListingDetail({ listingId }) {
+  const listing = await repo.findListingById(listingId);
+
+  if (!listing || listing.isDeleted) {
+    const err = new Error("존재하지 않는 판매글입니다.");
+    err.code = 404;
+    throw err;
+  }
+
+  const photoCards = Array.isArray(listing.photoCards)
+    ? listing.photoCards
+    : listing.myPhotoCard
+      ? [listing.myPhotoCard]
+      : [];
+  const primaryCard = photoCards.length > 0 ? photoCards[0] : null;
+
+  const seller = listing.seller
+    ? {
+        id: listing.seller.id,
+        name: listing.seller.name,
+      }
+    : null;
+
+  return {
+    id: listing.id,
+    price: listing.price ?? 0,
+    quantity: listing.quantity ?? 0,
+    initQuantity: listing.initQuantity ?? listing.quantity ?? 0,
+    status: listing.status,
+    seller,
+
+    myPhotoCard: primaryCard,
+
+    preferredGrade: listing.preferredGrade,
+    preferredGenre: listing.preferredGenre,
+    preferredDescription: listing.preferredDescription,
+  };
+}
 
 // 마켓플레이스 판매 카드 조회
 export async function getMarketplaceListingsService(params) {
@@ -76,7 +111,7 @@ export async function getMyPhotoCardsService(userId, params) {
     params.sortBy,
     params.sortOrder,
     params.cursor,
-    params.take
+    params.take,
   );
   return photos;
 }
@@ -94,7 +129,7 @@ export async function createListingService(data) {
   // 이번 달 1일 00:00 계산
   const now = new Date();
   const firstDayOfMonthUTC = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0)
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
   );
 
   // 이번 달 등록 수 확인
