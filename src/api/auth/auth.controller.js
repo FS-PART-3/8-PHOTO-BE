@@ -8,6 +8,7 @@ import {
   isValidEmail,
   isValidToken,
 } from "../../auth/utils/token.js";
+import { getPoint } from "../points/points.repository.js";
 import {
   createUser,
   getUser,
@@ -66,9 +67,11 @@ export async function login(req, res, next) {
     const accessToken = createToken(user);
     const refreshToken = createToken(user, "refresh");
 
+    const points = await getPoint(user);
+
     await updateUser(user.id, { refreshToken });
     res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-    res.status(200).json({ ...user, accessToken });
+    res.status(200).json({ ...user, points, accessToken });
   } catch (error) {
     next(error);
   }

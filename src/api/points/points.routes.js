@@ -1,8 +1,10 @@
-// 예시파일입니다. 필요시 지우고 사용하세요.
-// TODO: implement
-// import { Router } from "express";
-// import * as controller from "./points.controller.js";
+import { Router } from "express";
+import { verifyAccessToken } from "../../middlewares/authGuard.js";
+import { getMyPoint, reward } from "./points.controller";
 
-// const router = Router();
+const router = Router();
 
-// export default router;
+router.get("/my", verifyAccessToken, getMyPoint);
+router.post("/reward", verifyAccessToken, reward);
+
+export default router;
