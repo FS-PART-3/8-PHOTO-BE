@@ -455,17 +455,145 @@ router.post(
  * /marketplace/{listingId}:
  *   get:
  *     summary: 판매글 상세 조회
+ *     description: 판매글 ID를 이용해 상세 정보를 조회합니다.
  *     tags: [Marketplace]
  *     parameters:
  *       - in: path
  *         name: listingId
  *         required: true
- *         schema: { type: string }
+ *         schema:
+ *           type: string
+ *         description: 판매글 ID
  *     responses:
- *       200: { description: 상세 정보 }
- *       404: { description: 존재하지 않는 판매글 }
+ *       200:
+ *         description: 상세 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "listing-550e8400-e29b-41d4-a716-446655440004-15"
+ *                 price:
+ *                   type: integer
+ *                   example: 26
+ *                 quantity:
+ *                   type: integer
+ *                   example: 1
+ *                 initQuantity:
+ *                   type: integer
+ *                   example: 1
+ *                 status:
+ *                   type: string
+ *                   enum: [FOR_SALE, FOR_EXCHANGE, SOLD_OUT, CANCELLED]
+ *                   example: "FOR_SALE"
+ *                 seller:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "550e8400-e29b-41d4-a716-446655440004"
+ *                     name:
+ *                       type: string
+ *                       example: "희성"
+ *                 myPhotoCard:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "photo-550e8400-e29b-41d4-a716-446655440004-15"
+ *                     title:
+ *                       type: string
+ *                       example: "How Far I'll Go"
+ *                     imgUrl:
+ *                       type: string
+ *                       example: "images/photo_3.svg"
+ *                     grade:
+ *                       type: string
+ *                       enum: [COMMON, RARE, SUPER_RARE, LEGENDARY]
+ *                       example: "SUPER_RARE"
+ *                     genre:
+ *                       type: string
+ *                       enum: [풍경, 인물, 도시, 자연]
+ *                       example: "도시"
+ *                     description:
+ *                       type: string
+ *                       example: "SUPER_RARE 등급의 도시 테마 카드입니다."
+ *                     price:
+ *                       type: integer
+ *                       example: 31
+ *                     quantity:
+ *                       type: integer
+ *                       example: 2
+ *                 photoCards:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "photo-550e8400-e29b-41d4-a716-446655440004-15"
+ *                       title:
+ *                         type: string
+ *                         example: "How Far I'll Go"
+ *                       imgUrl:
+ *                         type: string
+ *                         example: "images/photo_3.svg"
+ *                       grade:
+ *                         type: string
+ *                         example: "SUPER_RARE"
+ *                       genre:
+ *                         type: string
+ *                         example: "도시"
+ *                       description:
+ *                         type: string
+ *                         example: "SUPER_RARE 등급의 도시 테마 카드입니다."
+ *                       price:
+ *                         type: integer
+ *                         example: 31
+ *                       quantity:
+ *                         type: integer
+ *                         example: 2
+ *                 preferredGrade:
+ *                   type: string
+ *                   example: "SUPER_RARE"
+ *                 preferredGenre:
+ *                   type: string
+ *                   example: "도시"
+ *                 preferredDescription:
+ *                   type: string
+ *                   example: "같은 장르 카드와 교환하고 싶어요."
+ *             example:
+ *               id: "listing-550e8400-e29b-41d4-a716-446655440004-15"
+ *               price: 26
+ *               quantity: 1
+ *               initQuantity: 1
+ *               status: "FOR_SALE"
+ *               seller:
+ *                 id: "550e8400-e29b-41d4-a716-446655440004"
+ *                 name: "희성"
+ *               myPhotoCard:
+ *                 id: "photo-550e8400-e29b-41d4-a716-446655440004-15"
+ *                 title: "How Far I'll Go"
+ *                 imgUrl: "images/photo_3.svg"
+ *                 grade: "SUPER_RARE"
+ *                 genre: "도시"
+ *                 description: "SUPER_RARE 등급의 도시 테마 카드입니다."
+ *                 price: 31
+ *                 quantity: 2
+ *
+ *       404:
+ *         description: 존재하지 않는 판매글
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "존재하지 않는 판매글입니다."
  */
-// 판매글 상세 조회
 router.get("/marketplace/:listingId", controller.getListingDetail);
 
 export default router;

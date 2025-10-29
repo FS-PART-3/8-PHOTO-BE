@@ -87,7 +87,6 @@ export async function getListingDetail({ listingId }) {
     seller,
 
     myPhotoCard: primaryCard,
-    photoCards,
 
     preferredGrade: listing.preferredGrade,
     preferredGenre: listing.preferredGenre,
