@@ -450,4 +450,22 @@ router.post(
   controller.createListing,
 );
 
+/**
+ * @swagger
+ * /marketplace/{listingId}:
+ *   get:
+ *     summary: 판매글 상세 조회
+ *     tags: [Marketplace]
+ *     parameters:
+ *       - in: path
+ *         name: listingId
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: 상세 정보 }
+ *       404: { description: 존재하지 않는 판매글 }
+ */
+// 판매글 상세 조회
+router.get("/marketplace/:listingId", controller.getListingDetail);
+
 export default router;

@@ -45,10 +45,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         code: 400,
       });
     if (listing.status !== "FOR_SALE")
-      throw Object.assign(
-        new Error("현재 구매할 수 없는 상태의 판매글입니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("현재 구매할 수 없는 상태의 판매글입니다."), { code: 400 });
     if (listing.quantity < quantity)
       throw Object.assign(new Error("재고가 부족합니다."), { code: 400 });
 
@@ -200,8 +197,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         {
           id: randomUUID(),
           userId: listing.sellerId,
-          type:
-            listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
+          type: listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
           payload: {
             listingId,
             transactionId: transaction.id,
@@ -233,18 +229,12 @@ export async function runCreateExchangeOfferTransaction({
       });
 
     if (listing.sellerId === offeredById) {
-      throw Object.assign(
-        new Error("자신의 판매글에는 교환을 신청할 수 없습니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
     }
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
-      throw Object.assign(
-        new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."),
-        {
-          code: 400,
-        }
-      );
+      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
+        code: 400,
+      });
     }
 
     // 2) 동일 사용자의 중복 PENDING 신청 방지
@@ -315,12 +305,8 @@ export async function updateListing({ sellerId, listingId, payload }) {
     data: {
       ...(payload.price !== undefined ? { price: payload.price } : {}),
       ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
-      ...(payload.preferredGrade !== undefined
-        ? { preferredGrade: payload.preferredGrade }
-        : {}),
-      ...(payload.preferredGenre !== undefined
-        ? { preferredGenre: payload.preferredGenre }
-        : {}),
+      ...(payload.preferredGrade !== undefined ? { preferredGrade: payload.preferredGrade } : {}),
+      ...(payload.preferredGenre !== undefined ? { preferredGenre: payload.preferredGenre } : {}),
       ...(payload.preferredDescription !== undefined
         ? { preferredDescription: payload.preferredDescription }
         : {}),
@@ -401,7 +387,46 @@ export async function cancelListing({ sellerId, listingId }) {
     return cancelled;
   });
 }
+// 판매글 상세조회
+export async function findListingById(id) {
+  return prisma.listing.findUnique({
+    where: { id }, // id는 PK
+    select: {
+      id: true,
+      price: true,
+      quantity: true,
+      initQuantity: true,
+      status: true,
+      isDeleted: true,
+      createdAt: true,
+      updatedAt: true,
 
+      seller: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+
+      photoCards: {
+        select: {
+          id: true,
+          title: true,
+          imgUrl: true,
+          grade: true,
+          genre: true,
+          description: true,
+          price: true,
+          quantity: true,
+        },
+      },
+
+      preferredGrade: true,
+      preferredGenre: true,
+      preferredDescription: true,
+    },
+  });
+}
 // 마켓플레이스 판매 카드 목록 조회 +검색/필터/정렬
 export async function getMarketplaceListings({
   userId,
@@ -454,7 +479,7 @@ export async function getMyPhotoCards(
   sortBy,
   sortOrder,
   cursor,
-  take = 6
+  take = 6,
 ) {
   const where = { userId };
 
