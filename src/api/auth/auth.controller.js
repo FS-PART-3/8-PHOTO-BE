@@ -129,6 +129,7 @@ export async function setRefreshToken(req, res, next) {
   }
 }
 
+//인증/인가 여부 반환
 export async function check(req, res, next) {
   try {
     const authHeader = req.headers.authorization;

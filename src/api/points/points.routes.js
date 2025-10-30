@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyAccessToken } from "../../middlewares/authGuard.js";
-import { getMyPoint, reward } from "./points.controller";
+import { getMyPoint, reward } from "./points.controller.js";
 
 const router = Router();
 

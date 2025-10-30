@@ -1,5 +1,5 @@
-import authRepository from "../auth/auth.repository";
-import { createReward, getPoint } from "./points.repository";
+import authRepository from "../auth/auth.repository.js";
+import { createReward, getPoint } from "./points.repository.js";
 
 export async function getMyPoint(req, res, next) {
   try {
