@@ -11,7 +11,9 @@ const DEFAULT_LIMIT = 15;
  */
 const buildWhereClause = (filters) => {
   const where = {};
-  const myPhotoCardFilters = {};
+  const myPhotoCardFilters = {
+    isDeleted: false,
+  };
   const { search, grade, genre, status, soldOut } = filters;
 
   // 1. 검색어 (search) 처리: myPhotoCard의 title 필드에 대해 부분 일치 검색
@@ -21,7 +23,7 @@ const buildWhereClause = (filters) => {
 
   // 2. 등급 (grade) 처리: myPhotoCard의 grade 필드 필터링
   if (grade) {
-    myPhotoCardFilters.grade = grade.toUpperCase();
+    myPhotoCardFilters.grade = grade;
   }
 
   // 3. 장르 (genre) 처리: myPhotoCard의 genre 필드 필터링
@@ -29,14 +31,17 @@ const buildWhereClause = (filters) => {
     myPhotoCardFilters.genre = genre;
   }
 
-  // myPhotoCard 필터가 있으면 where 절에 추가
-  if (Object.keys(myPhotoCardFilters).length > 0) {
-    where.myPhotoCard = myPhotoCardFilters;
+  // myPhotoCard 필터가 있으면 where 절에 추가 (many-to-many 관계이므로 some 사용)
+  if (Object.keys(myPhotoCardFilters).length > 1) {
+    // isDeleted 외에 다른 필터가 있으면
+    where.photoCards = {
+      some: myPhotoCardFilters,
+    };
   }
 
   // 4. 상태 (status) 처리: Listing의 status 필드 필터링
   if (status) {
-    where.status = status.toUpperCase();
+    where.status = status;
   }
 
   // 5. 품절 여부 (soldOut) 처리: quantity가 0인지 확인
@@ -65,7 +70,7 @@ const formatGradeCounts = (gradeCountsArray) => {
   const gradeCounts = {
     COMMON: 0,
     RARE: 0,
-    SUPERRARE: 0,
+    SUPER_RARE: 0,
     LEGENDARY: 0,
   };
 
@@ -96,6 +101,7 @@ export const getMySalesPhotocards = async (
   // Listing 모델 기반의 WHERE 절 구성
   const whereClause = {
     sellerId: userId, // Listing 모델의 sellerId 필드 사용
+    isDeleted: false,
     ...filterWhere,
   };
 

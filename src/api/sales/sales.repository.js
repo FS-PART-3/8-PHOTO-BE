@@ -17,7 +17,7 @@ const SALES_CARD_SELECT = {
       name: true,
     },
   },
-  myPhotoCard: {
+  photoCards: {
     select: {
       id: true,
       title: true,
@@ -30,15 +30,38 @@ const SALES_CARD_SELECT = {
 
 /**
  * 포토카드 목록 및 등급별 개수 조회
- * @param {Object} options - 조회 옵션
+ * @param {Object} where - Prisma where 절
+ * @param {Object} pagination - 페이지네이션 옵션
  * @returns { Promise<object> } - 포토카드 목록 및 등급별 개수 조회 결과
  */
 export const findAllSalesCards = async (where, pagination) => {
+  // MyPhotoCard 필터 조건 추출 (sellerId는 제외)
+  const myPhotoCardWhere = where.photoCards?.some || {};
+
+  // sellerId 기반 where 절 생성
+  const listingWhere = {
+    sellerId: where.sellerId,
+    isDeleted: false,
+  };
+
+  // Listing 자체의 필터 조건 추가
+  if (where.status) {
+    listingWhere.status = where.status;
+  }
+  if (where.quantity !== undefined) {
+    listingWhere.quantity = where.quantity;
+  }
+
+  // photoCards 관계 필터가 있으면 추가
+  if (Object.keys(myPhotoCardWhere).length > 0) {
+    listingWhere.photoCards = { some: myPhotoCardWhere };
+  }
+
   // 병렬 쿼리 실행
   const [listings, totalCount, gradeCountsArray] = await Promise.all([
     // 1. 포토카드 목록 조회
     prisma.listing.findMany({
-      where,
+      where: listingWhere,
       select: SALES_CARD_SELECT,
       skip: pagination.skip,
       take: pagination.take,
@@ -46,14 +69,15 @@ export const findAllSalesCards = async (where, pagination) => {
     }),
 
     // 2. 전체 개수 (필터 적용)
-    prisma.listing.count({ where }),
+    prisma.listing.count({ where: listingWhere }),
 
     // 3. 등급별 개수 - MyPhotoCard를 groupBy하되, Listing 조건 반영
     prisma.myPhotoCard.groupBy({
       by: ["grade"],
       where: {
-        listings: {
-          some: where,
+        isDeleted: false,
+        listing: {
+          some: listingWhere,
         },
       },
       _count: {
@@ -67,10 +91,10 @@ export const findAllSalesCards = async (where, pagination) => {
     status: listing.status,
     price: listing.price,
     quantity: listing.quantity,
-    title: listing.myPhotoCard.title,
-    grade: listing.myPhotoCard.grade,
-    genre: listing.myPhotoCard.genre,
-    imgUrl: listing.myPhotoCard.imgUrl,
+    title: listing.photoCards[0]?.title,
+    grade: listing.photoCards[0]?.grade,
+    genre: listing.photoCards[0]?.genre,
+    imgUrl: listing.photoCards[0]?.imgUrl,
     createdAt: listing.createdAt,
     updatedAt: listing.updatedAt,
     user: listing.seller,
