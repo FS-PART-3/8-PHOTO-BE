@@ -1,2 +1,2 @@
-// import router from "./points.routes.js";
-// export default router;
+import router from "./points.routes.js";
+export default router;
