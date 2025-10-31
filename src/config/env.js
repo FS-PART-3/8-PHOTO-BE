@@ -6,6 +6,7 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().optional(),
   CORS_ORIGIN: z.string().default("*"),
+  BASE_URL: z.string().optional(), // S3 적용 후 삭제예정
   JWT_SECRET: z.string().min(10, "JWT_SECRET is required (>=10 chars)"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   JWT_JWT_ACCESS_EXPIRES_IN: z.string().default("7d"),
