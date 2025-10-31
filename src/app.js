@@ -41,7 +41,7 @@ app.use(errorHandler);
 
 //  6. 서버 실행
 
-const port = env.PORT || 4000;
+const port = process.env.PORT || 4000;
 app.listen(port, () => {
   logger.info(` Server listening on http://localhost:${port}`);
   logger.info(` Swagger docs available at http://localhost:${port}/docs`);
