@@ -1,13 +1,20 @@
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "../../config/db.js";
 
-export async function getPoint(user) {
+export async function getPointHistory(user) {
   const pointHistory = prisma.point.findMany({
     where: { userId: user.id },
   });
-  console.log(pointHistory);
-  //const sum = pointHistory.reduce((acc, v) => acc + v.amount, 0);
   return pointHistory;
+}
+
+export async function getCurrentPoints(user) {
+  const result = await prisma.point.aggregate({
+    //prisma 집계 기능
+    _sum: { amount: true },
+    where: { userId: user.id },
+  });
+  return result._sum.amount;
 }
 
 export async function createReward(user, amount) {

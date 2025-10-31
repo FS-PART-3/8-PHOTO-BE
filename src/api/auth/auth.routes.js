@@ -11,9 +11,10 @@ import {
   login,
   logout,
   refresh,
-  oauthLogin,
   setRefreshToken,
   check,
+  getUserData,
+  oauthLogin,
 } from "./auth.controller.js";
 
 const router = Router();
@@ -24,9 +25,10 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.post("/refresh", verifyRefreshToken, refresh); //리프레쉬 토큰 인증 필요.
 router.post("/check", check);
+router.get("/userdata", verifyAccessToken, getUserData);
 
 //**액세스 토큰 인증을 통해 리프레쉬 토큰을 받아오는 기괴한 엔드포인트
-router.post("/getrefresh", verifyAccessToken, setRefreshToken); //액세스 토큰 인증 필요.
+router.post("/refreshtoken", verifyAccessToken, setRefreshToken); //액세스 토큰 인증 필요.
 
 /* --- 구글 소셜 로그인(회원가입) --- */
 //구글 로그인 페이지로 이동시키는 라우터

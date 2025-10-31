@@ -8,7 +8,10 @@ import {
   isValidEmail,
   isValidToken,
 } from "../../auth/utils/token.js";
-import { getPoint } from "../points/points.repository.js";
+import {
+  getPointHistory,
+  getCurrentPoints,
+} from "../points/points.repository.js";
 import {
   createUser,
   getUser,
@@ -67,11 +70,11 @@ export async function login(req, res, next) {
     const accessToken = createToken(user);
     const refreshToken = createToken(user, "refresh");
 
-    const points = await getPoint(user);
+    const currentPoints = await getCurrentPoints(user);
 
     await updateUser(user.id, { refreshToken });
     res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-    res.status(200).json({ ...user, points, accessToken });
+    res.status(200).json({ ...user, points: currentPoints, accessToken });
   } catch (error) {
     next(error);
   }
@@ -147,6 +150,22 @@ export async function check(req, res, next) {
     return res.status(200).json({ authenticated: true });
   } catch (error) {
     return res.status(403).json({ authenticated: false });
+  }
+}
+
+export async function getUserData(req, res, next) {
+  try {
+    const userId = req.auth?.userId || req.user?.id;
+    const user = await getUserById(userId);
+    const points = await getCurrentPoints(user);
+
+    const data = {
+      ...user,
+      points,
+    };
+    return res.status(200).json(data);
+  } catch (err) {
+    next(err);
   }
 }
 
