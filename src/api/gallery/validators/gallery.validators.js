@@ -27,4 +27,19 @@ export const createPhotoCardSchema = z.object({
     quantity: z.coerce.number().int().min(1, "수량은 1 이상이어야 합니다.").max(10, "한 번에 최대 10장까지 생성 가능합니다."),
     description: z.string().max(1000).optional().default(""),
   }),
+  file: z
+    .object({
+      fieldname: z.string(),
+      originalname: z.string(),
+      encoding: z.string(),
+      mimetype: z.string().refine(
+        (mime) => mime.startsWith("image/"),
+        "이미지 파일만 업로드 가능합니다."
+      ),
+      buffer: z.any(), // Buffer 타입 체크를 완화
+      size: z.number().max(5 * 1024 * 1024, "파일 크기는 5MB 이하여야 합니다."),
+    })
+    .refine((file) => file && file.buffer, {
+      message: "이미지 파일은 필수입니다.",
+    }),
 });

@@ -6,6 +6,11 @@ export function validate(schema) {
       params: req.params || {},
     };
 
+    // multer로 업로드된 파일이 있으면 추가
+    if (req.file) {
+      data.file = req.file;
+    }
+
     const result = schema.safeParse(data);
 
     if (!result.success) {

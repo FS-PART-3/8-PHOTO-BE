@@ -24,7 +24,14 @@ export async function createPhotoCardService(userId, photoCardData, file) {
   // 유저의 현재 포인트 확인
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { point: true },
+    select: { 
+      id: true,
+      points: {
+        select: {
+          amount: true,
+        },
+      },
+    },
   });
 
   if (!user) {
@@ -33,9 +40,12 @@ export async function createPhotoCardService(userId, photoCardData, file) {
     throw error;
   }
 
-  if (user.point < fee) {
+  // 포인트 합계 계산
+  const currentPoint = user.points.reduce((sum, point) => sum + point.amount, 0);
+
+  if (currentPoint < fee) {
     const error = new Error(
-      `포인트가 부족합니다. 필요한 수수료: ${fee}P, 현재 포인트: ${user.point}P`
+      `포인트가 부족합니다. 필요한 수수료: ${fee}P, 현재 포인트: ${currentPoint}P`
     );
     error.code = 400;
     throw error;
@@ -62,13 +72,7 @@ export async function createPhotoCardService(userId, photoCardData, file) {
     // 포토카드 생성
     const myPhotoCard = await repo.createPhotoCard(userId, photoCardData, imgUrl);
 
-    // 포인트 차감
-    await tx.user.update({
-      where: { id: userId },
-      data: { point: { decrement: fee } },
-    });
-
-    // 포인트 사용 내역 기록
+    // 포인트 사용 내역 기록 (차감)
     await tx.point.create({
       data: {
         id: randomUUID(),
