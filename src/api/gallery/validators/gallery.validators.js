@@ -17,7 +17,7 @@ export const getMyGallerySchema = z.object({
 export const createPhotoCardSchema = z.object({
   body: z.object({
     title: z.string().min(1, "제목은 필수입니다.").max(100),
-    grade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"], {
+    grade: z.enum(["COMMON", "RARE", "SUPER_RARE", "LEGENDARY"], {
       required_error: "등급은 필수입니다.",
     }),
     genre: z.enum(["풍경", "인물", "도시", "자연"], {

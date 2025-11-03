@@ -8,7 +8,10 @@ import {
   isValidEmail,
   isValidToken,
 } from "../../auth/utils/token.js";
-import { getPoint } from "../points/points.repository.js";
+import {
+  getPointHistory,
+  getCurrentPoints,
+} from "../points/points.repository.js";
 import {
   createUser,
   getUser,
@@ -29,13 +32,13 @@ export async function signup(req, res, next) {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
       const error = new Error("name, email, password 가 모두 필요합니다.");
-      error.code = 422;
+      error.code = 400;
       throw error;
     }
 
     if (!isValidEmail(email)) {
       const error = new Error("email 형식이 올바르지 않습니다.");
-      error.code = 422;
+      error.code = 400;
       throw error;
     }
 
@@ -53,13 +56,13 @@ export async function login(req, res, next) {
   try {
     if (!email || !password) {
       const error = new Error("email, password 가 모두 필요합니다.");
-      error.code = 422;
+      error.code = 400;
       throw error;
     }
 
     if (!isValidEmail(email)) {
       const error = new Error("email 형식이 올바르지 않습니다.");
-      error.code = 422;
+      error.code = 400;
       throw error;
     }
 
@@ -67,11 +70,11 @@ export async function login(req, res, next) {
     const accessToken = createToken(user);
     const refreshToken = createToken(user, "refresh");
 
-    const points = await getPoint(user);
+    const currentPoints = await getCurrentPoints(user);
 
     await updateUser(user.id, { refreshToken });
     res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-    res.status(200).json({ ...user, points, accessToken });
+    res.status(200).json({ ...user, points: currentPoints, accessToken });
   } catch (error) {
     next(error);
   }
@@ -134,19 +137,35 @@ export async function check(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader && !authHeader.startsWith("Bearer ")) {
-      const error = new Error("token 양식 오류.");
-      error.code = 401;
+      const error = new Error("token 형식 오류.");
+      error.code = 400;
       throw error;
     }
     const accessToken = authHeader.split(" ")[1];
     if (!isValidToken(accessToken)) {
-      const error = new Error("UnauthorizedError");
-      error.code = 403;
+      const error = new Error("만료된 토큰");
+      error.code = 401;
       throw error;
     }
     return res.status(200).json({ authenticated: true });
   } catch (error) {
-    return res.status(403).json({ authenticated: false });
+    return res.status(error?.code || 500).json({ authenticated: false });
+  }
+}
+
+export async function getUserData(req, res, next) {
+  try {
+    const userId = req.auth?.userId || req.user?.id;
+    const user = await getUserById(userId);
+    const points = await getCurrentPoints(user);
+
+    const data = {
+      ...user,
+      points,
+    };
+    return res.status(200).json(data);
+  } catch (err) {
+    next(err);
   }
 }
 
