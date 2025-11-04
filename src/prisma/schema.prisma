@@ -67,7 +67,8 @@ model MyPhotoCard {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    listing Listing[] @relation("PhotoCardListings")
+    listing       Listing[]       @relation("PhotoCardListings")
+    ExchangeOffer ExchangeOffer[]
 
     @@index([title])
     @@index([grade])
@@ -131,11 +132,13 @@ enum OfferStatus {
 }
 
 model ExchangeOffer {
-    id          String  @id
-    listing     Listing @relation(fields: [listingId], references: [id])
-    listingId   String
-    offeredBy   User    @relation(fields: [offeredById], references: [id], onDelete: Cascade)
-    offeredById String
+    id             String      @id
+    listing        Listing     @relation(fields: [listingId], references: [id])
+    listingId      String
+    offeredBy      User        @relation(fields: [offeredById], references: [id], onDelete: Cascade)
+    offeredById    String
+    offeredPhoto   MyPhotoCard @relation(fields: [offeredPhotoId], references: [id])
+    offeredPhotoId String
 
     offeredDescription String
     status             OfferStatus @default(PENDING)
