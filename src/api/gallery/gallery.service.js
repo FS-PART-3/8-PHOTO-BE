@@ -12,12 +12,19 @@ export async function getMyGalleryService(userId, params) {
   const usedCreations = await repo.getMonthlyCreationCount(userId);
   const remainingCreations = Math.max(0, PHOTO_CARD.MAX_MONTHLY_CREATIONS - usedCreations);
   
+  // 현재 날짜 정보
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 0부터 시작하므로 +1
+  
   return {
     ...result,
     creationInfo: {
       usedCreations,
       remainingCreations,
       maxCreations: PHOTO_CARD.MAX_MONTHLY_CREATIONS,
+      currentYear,
+      currentMonth,
     },
   };
 }
@@ -40,7 +47,7 @@ export async function createPhotoCardService(userId, photoCardData, file) {
   }
 
   // 수수료 계산 (10% 반올림)
-  const fee = Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE);
+  const fee = Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE) * photoCardData.quantity;
 
   // 유저의 현재 포인트 확인
   const user = await prisma.user.findUnique({
