@@ -17,7 +17,11 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
     },
   };
 }
-export async function createExchangeOffer({ offeredById, listingId, offeredDescription }) {
+export async function createExchangeOffer({
+  offeredById,
+  listingId,
+  offeredDescription,
+}) {
   const offer = await repo.runCreateExchangeOfferTransaction({
     offeredById,
     listingId,
@@ -111,7 +115,7 @@ export async function getMyPhotoCardsService(userId, params) {
     params.sortBy,
     params.sortOrder,
     params.cursor,
-    params.take,
+    params.take
   );
   return photos;
 }
@@ -129,16 +133,14 @@ export async function createListingService(data) {
   // 이번 달 1일 00:00 계산
   const now = new Date();
   const firstDayOfMonthUTC = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0)
   );
 
   // 이번 달 등록 수 확인
-  const listingCountThisMonth = await prisma.listing.count({
-    where: {
-      sellerId,
-      createdAt: { gte: firstDayOfMonthUTC },
-    },
-  });
+  const listingCountThisMonth = await repo.countListingsThisMonth(
+    sellerId,
+    firstDayOfMonthUTC
+  );
 
   if (listingCountThisMonth >= 3) {
     const error = new Error("한 달에 최대 3장까지만 판매 등록이 가능합니다.");
@@ -146,6 +148,5 @@ export async function createListingService(data) {
     throw error;
   }
 
-  const listing = await repo.createListing(data);
-  return listing;
+  return repo.createListing(data);
 }
