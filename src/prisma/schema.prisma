@@ -68,6 +68,11 @@ model MyPhotoCard {
     updatedAt DateTime @updatedAt
 
     listing Listing[] @relation("PhotoCardListings")
+
+    @@index([title])
+    @@index([grade])
+    @@index([genre])
+    @@index([createdAt])
 }
 
 enum ListingStatus {
@@ -98,6 +103,11 @@ model Listing {
     photoCards     MyPhotoCard[]   @relation("PhotoCardListings")
     transactions   Transaction[]
     exchangeOffers ExchangeOffer[]
+
+    @@index([price])
+    @@index([status])
+    @@index([quantity])
+    @@index([createdAt])
 }
 
 model Transaction {
@@ -211,4 +221,6 @@ model History {
     newData      Json?
 
     createdAt DateTime @default(now())
+
+    @@index([userId])
 }

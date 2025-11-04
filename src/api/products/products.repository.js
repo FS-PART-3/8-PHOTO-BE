@@ -485,6 +485,8 @@ export async function getMarketplaceListings({
     },
   };
 
+  const [sortBy, sortOrder] = sort?.split(":") || ["createdAt", "desc"];
+
   let orderBy;
   switch (sortBy) {
     case "price":

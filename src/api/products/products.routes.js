@@ -262,8 +262,9 @@ router.patch(
  * /marketplace:
  *   get:
  *     summary: 마켓플레이스 판매 카드 목록 조회
- *     description: 검색, 필터, 정렬, 페이지네이션(cursor 기반) 기능을 제공합니다.
- *     tags: [Marketplace]
+ *     description: 검색, 필터, 정렬(sort=price:desc), 페이지네이션(cursor 기반) 기능을 제공합니다.
+ *     tags:
+ *       - Marketplace
  *     parameters:
  *       - in: query
  *         name: userId
@@ -291,15 +292,11 @@ router.patch(
  *           type: boolean
  *         description: 품절 여부 필터 (true일 경우 품절 상품만)
  *       - in: query
- *         name: sortBy
+ *         name: sort
  *         schema:
  *           type: string
- *           enum: [price, createdAt, quantity]
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
+ *           example: "price:asc"
+ *         description: 정렬 기준과 순서를 콜론(:)으로 구분 (예: price:desc, createdAt:asc)
  *       - in: query
  *         name: cursor
  *         schema:
