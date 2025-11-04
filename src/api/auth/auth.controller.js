@@ -94,10 +94,9 @@ export async function logout(req, res, next) {
 export async function refresh(req, res, next) {
   try {
     const refreshToken = req.cookies.refreshToken;
-    const userId = req.auth?.userId || req.user?.id;
+    const userId = req.auth?.userId;
     //auth에 있으면 기존 미들웨어,
     //없으면 passport의 jwtStrategy 미들웨어로 보고 user에서 찾음.
-    //console.log("userId: " + userId);
 
     //jwt 검증으로 저장된 userId라서 id는 굳이 검사과정이 필요 x
 
@@ -118,7 +117,7 @@ export async function refresh(req, res, next) {
 //accessToken이 있을 경우 refresh 토큰 발급
 export async function setRefreshToken(req, res, next) {
   try {
-    const userId = req.auth?.userId || req.user?.id; //인증 미들에어를 통해 req로 넘어오는 정보.
+    const userId = req.auth?.userId; //인증 미들에어를 통해 req로 넘어오는 정보.
     const user = await getUserById(userId); //실패 시 함수 안에서 에러 throw <- userServide.js 함수
     console.log("userName: " + user.name);
     const newRefreshToken = createToken(user, "refresh");
@@ -155,7 +154,7 @@ export async function check(req, res, next) {
 
 export async function getUserData(req, res, next) {
   try {
-    const userId = req.auth?.userId || req.user?.id;
+    const userId = req.auth?.userId;
     const user = await getUserById(userId);
     const points = await getCurrentPoints(user);
 
