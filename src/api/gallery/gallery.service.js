@@ -4,6 +4,26 @@ import { randomUUID } from "crypto";
 import { prisma } from "../../config/db.js";
 import { PHOTO_CARD } from "../../utils/constants.js";
 
+/**
+ * 등급별 개수 계산
+ * @param {Array} gradeCountsArray - 등급별 개수 배열
+ * @returns {Object} - 등급별 개수 객체
+ */
+const formatGradeCounts = (gradeCountsArray) => {
+  const gradeCounts = {
+    COMMON: 0,
+    RARE: 0,
+    SUPER_RARE: 0,
+    LEGENDARY: 0,
+  };
+
+  gradeCountsArray.forEach((item) => {
+    gradeCounts[item.grade] = item._count.grade;
+  });
+
+  return gradeCounts;
+};
+
 // 마이갤러리 포토카드 조회
 export async function getMyGalleryService(userId, params) {
   const result = await repo.getMyPhotoCards(userId, params);
@@ -17,8 +37,16 @@ export async function getMyGalleryService(userId, params) {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 0부터 시작하므로 +1
   
+  // 등급별 개수 포맷팅
+  const gradeCounts = formatGradeCounts(result.gradeCountsArray || []);
+  
   return {
-    ...result,
+    data: result.data,
+    pagination: result.pagination,
+    countsGroup: {
+      totalCounts: result.pagination.total,
+      gradeCounts,
+    },
     creationInfo: {
       usedCreations,
       remainingCreations,

@@ -61,6 +61,15 @@ export async function getMyPhotoCards(userId, params) {
   // 전체 개수 조회
   const total = await prisma.myPhotoCard.count({ where });
 
+  // 등급별 개수 조회
+  const gradeCountsArray = await prisma.myPhotoCard.groupBy({
+    by: ["grade"],
+    where,
+    _count: {
+      grade: true,
+    },
+  });
+
   return {
     data: myPhotoCards,
     pagination: {
@@ -69,6 +78,7 @@ export async function getMyPhotoCards(userId, params) {
       total,
       totalPages: Math.ceil(total / sizeNum),
     },
+    gradeCountsArray,
   };
 }
 
