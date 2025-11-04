@@ -2,11 +2,24 @@ import * as repo from "./gallery.repository.js";
 import { uploadBufferToS3 } from "../../config/cloud.js";
 import { randomUUID } from "crypto";
 import { prisma } from "../../config/db.js";
+import { PHOTO_CARD } from "../../utils/constants.js";
 
 // 마이갤러리 포토카드 조회
 export async function getMyGalleryService(userId, params) {
   const result = await repo.getMyPhotoCards(userId, params);
-  return result;
+  
+  // 이번 달 생성 기회 정보 추가
+  const usedCreations = await repo.getMonthlyCreationCount(userId);
+  const remainingCreations = Math.max(0, PHOTO_CARD.MAX_MONTHLY_CREATIONS - usedCreations);
+  
+  return {
+    ...result,
+    creationInfo: {
+      usedCreations,
+      remainingCreations,
+      maxCreations: PHOTO_CARD.MAX_MONTHLY_CREATIONS,
+    },
+  };
 }
 
 // 포토카드 생성
@@ -17,9 +30,17 @@ export async function createPhotoCardService(userId, photoCardData, file) {
     error.code = 400;
     throw error;
   }
+ 
+  // 생성 횟수 체크 (한 달에 최대 생성 가능 횟수 확인)
+  const createCount = await repo.getMonthlyCreationCount(userId);
+  if (createCount >= PHOTO_CARD.MAX_MONTHLY_CREATIONS) {
+    const error = new Error(`한 달에 최대 ${PHOTO_CARD.MAX_MONTHLY_CREATIONS}번까지만 포토카드를 생성할 수 있습니다.`);
+    error.code = 400;
+    throw error;
+  }
 
   // 수수료 계산 (10% 반올림)
-  const fee = Math.round(photoCardData.price * 0.1);
+  const fee = Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE);
 
   // 유저의 현재 포인트 확인
   const user = await prisma.user.findUnique({
