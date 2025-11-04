@@ -58,7 +58,10 @@ export const getListingDetail = asyncHandler(async (req, res) => {
 export const getMarketplaceListings = asyncHandler(async (req, res) => {
   const params = req.query; // 검색, 필터, 정렬, cursor, take 등
   const listings = await service.getMarketplaceListingsService(params);
-  res.status(200).json({ data: listings });
+  res.status(200).json({
+    message: "마켓플레이스 판매 카드 목록 조회 성공",
+    data: listings,
+  });
 });
 
 // 내 포토카드 목록
@@ -66,37 +69,36 @@ export const getMyPhotoCards = asyncHandler(async (req, res) => {
   const userId = req.user?.id ?? req.query.userId;
   const params = req.query;
   const photos = await service.getMyPhotoCardsService(userId, params);
-  res.status(200).json({ data: photos });
+  res.status(200).json({
+    message: "내 포토카드 목록 조회 성공",
+    data: photos,
+  });
 });
 
 // 포토카드 상세 조회
 export const getMyPhotoCardById = asyncHandler(async (req, res) => {
   const { myPhotoCardId } = req.params;
   const photo = await service.getMyPhotoCardByIdService(myPhotoCardId);
-  res.status(200).json(photo);
+  res.status(200).json({
+    message: "포토카드 상세 조회 성공",
+    data: photo,
+  });
 });
 
 // 판매 등록
 export const createListing = asyncHandler(async (req, res) => {
   const sellerId = req.user?.id ?? req.query.userId;
-  if (!sellerId) return res.status(401).json({ success: false, message: "로그인이 필요합니다." });
+  if (!sellerId)
+    return res
+      .status(401)
+      .json({ message: "로그인이 필요합니다.", data: null });
 
   const data = { ...req.body, sellerId };
 
-  try {
-    const listing = await service.createListingService(data);
-    res.status(201).json({
-      success: true,
-      message: "판매 등록이 완료되었습니다.",
-      listing,
-    });
-  } catch (error) {
-    if (error.statusCode === 400) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-    throw error;
-  }
+  const listing = await service.createListingService(data);
+
+  res.status(201).json({
+    message: "판매 등록이 완료되었습니다.",
+    data: listing,
+  });
 });

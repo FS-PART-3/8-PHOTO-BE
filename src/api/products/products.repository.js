@@ -45,7 +45,10 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         code: 400,
       });
     if (listing.status !== "FOR_SALE")
-      throw Object.assign(new Error("현재 구매할 수 없는 상태의 판매글입니다."), { code: 400 });
+      throw Object.assign(
+        new Error("현재 구매할 수 없는 상태의 판매글입니다."),
+        { code: 400 }
+      );
     if (listing.quantity < quantity)
       throw Object.assign(new Error("재고가 부족합니다."), { code: 400 });
 
@@ -60,16 +63,24 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
     const sellerSourceCard =
       listing.photoCards.find((c) => c.userId === listing.sellerId) ||
       (await tx.myPhotoCard.findFirst({
-        where: { userId: listing.sellerId, listings: { some: { id: listingId } } },
+        where: {
+          userId: listing.sellerId,
+          listings: { some: { id: listingId } },
+        },
         select: { id: true, quantity: true },
       }));
 
     if (!sellerSourceCard)
-      throw Object.assign(new Error("판매글의 원본 포토카드를 찾을 수 없습니다."), {
-        code: 500,
-      });
+      throw Object.assign(
+        new Error("판매글의 원본 포토카드를 찾을 수 없습니다."),
+        {
+          code: 500,
+        }
+      );
     if (sellerSourceCard.quantity < quantity)
-      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), { code: 409 });
+      throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), {
+        code: 409,
+      });
 
     // 3) 판매자 MyPhotoCard 보유 수량 차감
     const decCard = await tx.myPhotoCard.updateMany({
@@ -144,12 +155,23 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
     const sourceCard =
       listing.photoCards[0] ||
       (await tx.myPhotoCard.findFirst({
-        where: { userId: listing.sellerId, listing: { some: { id: listingId } } },
-        select: { title: true, imgUrl: true, grade: true, genre: true, description: true },
+        where: {
+          userId: listing.sellerId,
+          listing: { some: { id: listingId } },
+        },
+        select: {
+          title: true,
+          imgUrl: true,
+          grade: true,
+          genre: true,
+          description: true,
+        },
       }));
 
     if (!sourceCard)
-      throw Object.assign(new Error("원본 포토카드 정보를 찾을 수 없습니다."), { code: 500 });
+      throw Object.assign(new Error("원본 포토카드 정보를 찾을 수 없습니다."), {
+        code: 500,
+      });
 
     const existing = await tx.myPhotoCard.findFirst({
       where: {
@@ -197,7 +219,8 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         {
           id: randomUUID(),
           userId: listing.sellerId,
-          type: listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
+          type:
+            listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
           payload: {
             listingId,
             transactionId: transaction.id,
@@ -229,12 +252,18 @@ export async function runCreateExchangeOfferTransaction({
       });
 
     if (listing.sellerId === offeredById) {
-      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
+      throw Object.assign(
+        new Error("자신의 판매글에는 교환을 신청할 수 없습니다."),
+        { code: 400 }
+      );
     }
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
-      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
-        code: 400,
-      });
+      throw Object.assign(
+        new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."),
+        {
+          code: 400,
+        }
+      );
     }
 
     // 2) 동일 사용자의 중복 PENDING 신청 방지
@@ -305,8 +334,12 @@ export async function updateListing({ sellerId, listingId, payload }) {
     data: {
       ...(payload.price !== undefined ? { price: payload.price } : {}),
       ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
-      ...(payload.preferredGrade !== undefined ? { preferredGrade: payload.preferredGrade } : {}),
-      ...(payload.preferredGenre !== undefined ? { preferredGenre: payload.preferredGenre } : {}),
+      ...(payload.preferredGrade !== undefined
+        ? { preferredGrade: payload.preferredGrade }
+        : {}),
+      ...(payload.preferredGenre !== undefined
+        ? { preferredGenre: payload.preferredGenre }
+        : {}),
       ...(payload.preferredDescription !== undefined
         ? { preferredDescription: payload.preferredDescription }
         : {}),
@@ -427,6 +460,7 @@ export async function findListingById(id) {
     },
   });
 }
+
 // 마켓플레이스 판매 카드 목록 조회 +검색/필터/정렬
 export async function getMarketplaceListings({
   userId,
@@ -479,14 +513,15 @@ export async function getMyPhotoCards(
   sortBy,
   sortOrder,
   cursor,
-  take = 6,
+  take = 6
 ) {
-  const where = { userId };
-
-  if (search) where.title = { contains: search, mode: "insensitive" };
-  if (grade) where.grade = grade;
-  if (genre) where.genre = genre;
-  if (soldOut !== undefined) where.quantity = soldOut ? 0 : { gt: 0 };
+  const where = {
+    userId,
+    ...(search && { title: { contains: search, mode: "insensitive" } }),
+    ...(grade && { grade }),
+    ...(genre && { genre }),
+    ...(soldOut !== undefined && { quantity: soldOut ? 0 : { gt: 0 } }),
+  };
   const orderBy = {};
   if (sortBy) orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
   else orderBy["createdAt"] = "desc";
@@ -523,17 +558,19 @@ export async function createListing({
 }) {
   if (!myPhotoCardId) {
     const error = new Error("myPhotoCardId가 필요합니다.");
-    error.statusCode = 400;
+    error.status = 400;
     throw error;
   }
 
   const card = await prisma.myPhotoCard.findUnique({
     where: { id: myPhotoCardId },
   });
-  if (!card)
-    throw Object.assign(new Error("해당 포토카드를 찾을 수 없습니다."), {
-      statusCode: 404,
-    });
+
+  if (!card) {
+    const error = new Error("해당 포토카드를 찾을 수 없습니다.");
+    error.status = 404;
+    throw error;
+  }
 
   return prisma.listing.create({
     data: {
@@ -549,5 +586,15 @@ export async function createListing({
       status: "FOR_SALE",
     },
     include: { photoCards: true, seller: true },
+  });
+}
+
+// 이번 달 등록 수 조회
+export async function countListingsThisMonth(sellerId, firstDayOfMonthUTC) {
+  return prisma.listing.count({
+    where: {
+      sellerId,
+      createdAt: { gte: firstDayOfMonthUTC },
+    },
   });
 }

@@ -317,6 +317,7 @@ router.patch(
  *         content:
  *           application/json:
  *             example:
+ *               message: "마켓플레이스 판매 카드 목록 조회 성공"
  *               data:
  *                 - id: "07d1..."
  *                   sellerId: "550e..."
@@ -403,6 +404,7 @@ router.get("/marketplace", controller.getMarketplaceListings);
  *         content:
  *           application/json:
  *             example:
+ *               message: "내 포토카드 목록 조회 성공"
  *               data:
  *                 - id: "photo-550e..."
  *                   userId: "550e..."
@@ -443,6 +445,8 @@ router.get("/marketplace/my-photo-cards", controller.getMyPhotoCards);
  *         content:
  *           application/json:
  *             example:
+ *              message: "포토카드 상세 조회 성공"
+ *              data:
  *               id: "photo-550e..."
  *               userId: "550e..."
  *               title: "How Far I'll Go"
