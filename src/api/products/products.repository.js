@@ -485,20 +485,17 @@ export async function getMarketplaceListings({
     },
   };
 
-  const [sortBy, sortOrder] = sort?.split(":") || ["createdAt", "desc"];
-
   let orderBy;
-  switch (sortBy) {
-    case "price":
-      orderBy = {
-        photoCards: {
-          _min: { price: sortOrder === "desc" ? "desc" : "asc" },
-        },
-      };
+  switch (sort) {
+    case "low-price":
+      orderBy = { photoCards: { _min: { price: "asc" } } };
       break;
-    case "createdAt":
+    case "high-price":
+      orderBy = { photoCards: { _min: { price: "desc" } } };
+      break;
+    case "latest":
     default:
-      orderBy = { createdAt: sortOrder === "asc" ? "asc" : "desc" };
+      orderBy = { createdAt: "desc" };
       break;
   }
 

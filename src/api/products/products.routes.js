@@ -291,17 +291,11 @@ router.patch(
  *           type: boolean
  *         description: 품절 여부 필터 (true면 품절된 상품만 조회)
  *       - in: query
- *         name: sortBy
+ *         name: sort
  *         schema:
  *           type: string
- *           enum: [createdAt, price]
- *         description: 정렬 기준 (createdAt: 최신순, price: 가격순)
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *         description: 정렬 순서 (asc: 낮은순, desc: 높은순). createdAt의 기본값은 desc(최신순)
+ *           enum: [latest, low-price, high-price]
+ *         description: 정렬 기준 (latest=최신순, low-price=낮은 가격순, high-price=높은 가격순)
  *       - in: query
  *         name: cursor
  *         schema:
