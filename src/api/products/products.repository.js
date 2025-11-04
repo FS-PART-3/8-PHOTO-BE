@@ -484,9 +484,21 @@ export async function getMarketplaceListings({
       },
     },
   };
-  const orderBy = {};
-  if (sortBy) orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
-  else orderBy["createdAt"] = "desc";
+
+  let orderBy;
+  switch (sortBy) {
+    case "price":
+      orderBy = {
+        photoCards: {
+          _min: { price: sortOrder === "desc" ? "desc" : "asc" },
+        },
+      };
+      break;
+    case "createdAt":
+    default:
+      orderBy = { createdAt: sortOrder === "asc" ? "asc" : "desc" };
+      break;
+  }
 
   const listings = await prisma.listing.findMany({
     where,
