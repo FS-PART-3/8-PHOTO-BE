@@ -7,7 +7,7 @@ import {
 
 export async function pointHistory(req, res, next) {
   try {
-    const userId = req.auth.userId;
+    const userId = req.auth?.userId;
     const user = await authRepository.findById(userId);
 
     const result = await getPointHistory(user);
@@ -25,7 +25,7 @@ export async function pointHistory(req, res, next) {
 
 export async function points(req, res, next) {
   try {
-    const userId = req.auth.userId;
+    const userId = req.auth?.userId;
     const user = await authRepository.findById(userId);
 
     const result = await getCurrentPoints(user);

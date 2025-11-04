@@ -8,7 +8,7 @@ export const getMySales = async (req, res, next) => {
   try {
     // 쿼리 파라미터 추출
     const { search, grade, genre, status, soldOut, page, limit } = req.query;
-    const userId = req.auth.userId;
+    const userId = req.auth?.userId;
 
     // Service 호출 시 필터링 파라미터 모두 전달
     const result = await salesService.getMySalesPhotocards(

@@ -2,7 +2,7 @@ import { asyncHandler } from "../../middlewares/asyncHandler.js";
 import * as service from "./exchanges.service.js";
 
 export const approveExchangeOffer = asyncHandler(async (req, res) => {
-  const sellerId = req.user?.id ?? req.auth?.userId;
+  const sellerId = req.auth?.userId;
   if (!sellerId) return res.status(401).json({ message: "Unauthorized" });
   const { offerId } = req.params;
 
@@ -12,7 +12,7 @@ export const approveExchangeOffer = asyncHandler(async (req, res) => {
 });
 
 export const rejectExchangeOffer = asyncHandler(async (req, res) => {
-  const sellerId = req.user?.id ?? req.auth?.userId;
+  const sellerId = req.auth?.userId;
   if (!sellerId) return res.status(401).json({ message: "Unauthorized" });
 
   const { offerId } = req.params;
@@ -21,7 +21,7 @@ export const rejectExchangeOffer = asyncHandler(async (req, res) => {
 });
 
 export const cancelExchangeOffer = asyncHandler(async (req, res) => {
-  const offeredById = req.user?.id ?? req.auth?.userId;
+  const offeredById = req.auth?.userId;
   if (!offeredById) return res.status(401).json({ message: "Unauthorized" });
 
   const { offerId } = req.params;
