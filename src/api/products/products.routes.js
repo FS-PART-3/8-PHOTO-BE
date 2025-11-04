@@ -262,9 +262,8 @@ router.patch(
  * /marketplace:
  *   get:
  *     summary: 마켓플레이스 판매 카드 목록 조회
- *     description: 검색, 필터, 정렬(sort=price:desc), 페이지네이션(cursor 기반) 기능을 제공합니다.
- *     tags:
- *       - Marketplace
+ *     description: 검색, 필터, 정렬(최신순, 낮은 가격순, 높은 가격순) 및 페이지네이션(cursor 기반)을 지원합니다.
+ *     tags: [Marketplace]
  *     parameters:
  *       - in: query
  *         name: userId
@@ -275,39 +274,45 @@ router.patch(
  *         name: search
  *         schema:
  *           type: string
- *         description: 포토카드 제목 검색
+ *         description: 포토카드 제목 검색 (대소문자 구분 없음)
  *       - in: query
  *         name: grade
  *         schema:
  *           type: string
- *         description: 포토카드 등급 필터
+ *         description: 포토카드 등급 필터 (예: COMMON, RARE, SUPER_RARE)
  *       - in: query
  *         name: genre
  *         schema:
  *           type: string
- *         description: 포토카드 장르 필터
+ *         description: 포토카드 장르 필터 (예: 풍경, 인물 등)
  *       - in: query
  *         name: soldOut
  *         schema:
  *           type: boolean
- *         description: 품절 여부 필터 (true일 경우 품절 상품만)
+ *         description: 품절 여부 필터 (true면 품절된 상품만 조회)
  *       - in: query
- *         name: sort
+ *         name: sortBy
  *         schema:
  *           type: string
- *           example: "price:asc"
- *         description: 정렬 기준과 순서를 콜론(:)으로 구분 (예: price:desc, createdAt:asc)
+ *           enum: [createdAt, price]
+ *         description: 정렬 기준 (createdAt: 최신순, price: 가격순)
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: 정렬 순서 (asc: 낮은순, desc: 높은순). createdAt의 기본값은 desc(최신순)
  *       - in: query
  *         name: cursor
  *         schema:
  *           type: string
- *         description: 페이지네이션 커서
+ *         description: 페이지네이션 커서 (마지막 항목 ID)
  *       - in: query
  *         name: take
  *         schema:
  *           type: integer
  *           default: 15
- *         description: 한 번에 가져올 데이터 수
+ *         description: 한 번에 조회할 데이터 수
  *     responses:
  *       200:
  *         description: 성공적으로 판매 카드 목록을 반환함
@@ -344,6 +349,8 @@ router.patch(
  *                   seller:
  *                     id: "550e..."
  *                     name: "유디"
+ *       400:
+ *         description: 잘못된 요청 파라미터
  *       500:
  *         description: 서버 오류
  */
