@@ -271,7 +271,10 @@ router.get(
 router.post(
   "/",
   verifyAccessToken,
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "watermark", maxCount: 1 },
+  ]),
   validate(createPhotoCardSchema),
   controller.createPhotoCard
 );
