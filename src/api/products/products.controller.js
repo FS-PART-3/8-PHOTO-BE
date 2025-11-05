@@ -17,14 +17,18 @@ export const purchase = asyncHandler(async (req, res) => {
 });
 
 export const createExchangeOffer = asyncHandler(async (req, res) => {
+  console.log("[createExchangeOffer body]", req.body);
+  console.log("[createExchangeOffer params]", req.params);
+
   const offeredById = req.auth?.userId; //  유저 기능 적용
   const { listingId } = req.params;
-  const { offeredDescription } = req.body;
+  const { offeredDescription, offeredPhotoId } = req.body;
 
   const result = await service.createExchangeOffer({
-    offeredById,
+    userId: offeredById,
     listingId,
     offeredDescription,
+    offeredPhotoId,
   });
   return res.status(201).json(result);
 });
@@ -88,10 +92,7 @@ export const getMyPhotoCardById = asyncHandler(async (req, res) => {
 // 판매 등록
 export const createListing = asyncHandler(async (req, res) => {
   const sellerId = req.auth?.userId;
-  if (!sellerId)
-    return res
-      .status(401)
-      .json({ message: "로그인이 필요합니다.", data: null });
+  if (!sellerId) return res.status(401).json({ message: "로그인이 필요합니다.", data: null });
 
   const data = { ...req.body, sellerId };
 

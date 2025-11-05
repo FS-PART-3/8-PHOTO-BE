@@ -28,3 +28,17 @@ export const cancelExchangeOffer = asyncHandler(async (req, res) => {
   const result = await service.cancelExchangeOffer({ offeredById, offerId });
   return res.status(200).json(result);
 });
+// 구매자
+export const getMyExchangeOffers = asyncHandler(async (req, res) => {
+  const userId = req.auth?.userId;
+  const { listingId } = req.params;
+  const items = await service.getMyExchangeOffers({ listingId, userId });
+  res.json({ items });
+});
+
+export const getOffersForMyListing = asyncHandler(async (req, res) => {
+  const userId = req.auth?.userId;
+  const { listingId } = req.params;
+  const items = await service.getOffersForMyListing({ listingId, userId });
+  res.json({ items });
+});
