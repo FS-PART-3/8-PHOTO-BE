@@ -55,13 +55,14 @@ model MyPhotoCard {
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
 
-    title       String
-    grade       Grade
-    genre       Genre
-    price       Int
-    quantity    Int
-    imgUrl      String
-    description String
+    title        String
+    grade        Grade
+    genre        Genre
+    price        Int
+    quantity     Int
+    imgUrl       String
+    watermarkUrl String?
+    description  String
 
     isDeleted Boolean  @default(false)
     createdAt DateTime @default(now())
@@ -132,13 +133,13 @@ enum OfferStatus {
 }
 
 model ExchangeOffer {
-    id             String      @id
-    listing        Listing     @relation(fields: [listingId], references: [id])
+    id             String       @id
+    listing        Listing      @relation(fields: [listingId], references: [id])
     listingId      String
-    offeredBy      User        @relation(fields: [offeredById], references: [id], onDelete: Cascade)
+    offeredBy      User         @relation(fields: [offeredById], references: [id], onDelete: Cascade)
     offeredById    String
-    offeredPhoto   MyPhotoCard @relation(fields: [offeredPhotoId], references: [id])
-    offeredPhotoId String
+    offeredPhoto   MyPhotoCard? @relation(fields: [offeredPhotoId], references: [id])
+    offeredPhotoId String?
 
     offeredDescription String
     status             OfferStatus @default(PENDING)
