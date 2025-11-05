@@ -9,13 +9,6 @@ import {
 
 import apiRouter from "./api/index.js";
 import startCronJob from "./utils/cronjob.js";
-//////////////////// s33 임시 로컬 저장소용 ///////////////////
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-//////////////////// s33 임시 로컬 저장소용 ///////////////////
 
 const app = express();
 
@@ -23,9 +16,6 @@ const app = express();
 
 applySecurity(app); // helmet, compression, body-parser
 app.use(corsMiddleware);
-
-// 로컬 업로드 파일 정적 서빙 (S3 미사용 시)
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 //  2. 헬스 체크
 
