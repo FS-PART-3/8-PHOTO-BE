@@ -18,20 +18,31 @@ export async function purchaseListing({ buyerId, listingId, quantity }) {
   };
 }
 export async function createExchangeOffer({
-  offeredById,
+  userId,
   listingId,
   offeredDescription,
+  offeredPhotoId,
 }) {
+  const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+  if (!listing) throw new AppError(400, "유효하지 않은 listingId 입니다.");
+
+  const myCard = await prisma.myPhotoCard.findUnique({ where: { id: offeredPhotoId } });
+  if (!myCard) throw new AppError(400, "존재하지 않는 offeredPhotoId 입니다.");
+
+  if (myCard.userId !== userId)
+    throw new AppError(400, "본인 소유 카드만 교환에 사용할 수 있습니다.");
   const offer = await repo.runCreateExchangeOfferTransaction({
-    offeredById,
+    offeredById: userId,
     listingId,
     offeredDescription,
+    offeredPhotoId,
   });
 
   return {
     offerId: offer.id,
     listingId,
     offeredDescription: offer.offeredDescription,
+    offeredPhotoId: offer.offeredPhotoId,
     status: offer.status, // PENDING 상태코드로 변경
     createdAt: offer.createdAt,
   };
@@ -115,7 +126,7 @@ export async function getMyPhotoCardsService(userId, params) {
     params.sortBy,
     params.sortOrder,
     params.cursor,
-    params.take
+    params.take,
   );
   return photos;
 }
@@ -133,14 +144,11 @@ export async function createListingService(data) {
   // 이번 달 1일 00:00 계산
   const now = new Date();
   const firstDayOfMonthUTC = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0)
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
   );
 
   // 이번 달 등록 수 확인
-  const listingCountThisMonth = await repo.countListingsThisMonth(
-    sellerId,
-    firstDayOfMonthUTC
-  );
+  const listingCountThisMonth = await repo.countListingsThisMonth(sellerId, firstDayOfMonthUTC);
 
   if (listingCountThisMonth >= 3) {
     const error = new Error("한 달에 최대 3장까지만 판매 등록이 가능합니다.");

@@ -18,12 +18,10 @@ export const createExchangeSchema = z.object({
   }),
   body: z.object({
     offeredDescription: z.string().min(1, "offeredDescription은 필수입니다."),
-
-    offeredById: z.string().optional(),
+    offeredPhotoId: z.string().min(1, "offeredPhotoId는 필수입니다."),
   }),
   query: z.object({}).optional(),
 });
-
 export const updateListingSchema = z.object({
   params: z.object({ listingId: z.string().min(1) }),
   body: z
