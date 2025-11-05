@@ -2,7 +2,11 @@
 //user 테이블에 관한 내용 밖에 없네요..
 
 import repo from "./auth.repository.js";
-import { hashPassword, verifyPassword } from "../../auth/utils/hash.js";
+import {
+  hashPassword,
+  password,
+  verifyPassword,
+} from "../../auth/utils/hash.js";
 
 export async function createUser(user) {
   try {
@@ -67,8 +71,35 @@ export async function getUserById(id) {
   }
 }
 
+export async function checkPassword(userId, password) {
+  try {
+    const user = await repo.findById(userId);
+    if (!user) {
+      const error = new Error("존재하지 않는 유저입니다.");
+      error.code = 401;
+      throw error;
+    }
+    await verifyPassword(password, user.password);
+    return filterSensitiveUserData(user);
+  } catch (error) {
+    if (error.code === 401) throw error;
+    const customError = new Error("데이터베이스 작업 중 오류가 발생했습니다");
+    customError.code = 500;
+    throw customError;
+  }
+}
+
 export async function updateUser(userId, data) {
-  const user = repo.update(userId, data);
+  //만약 비밀번호가 들어오면 해시화
+  let _data = data;
+  if (data?.password) {
+    const hashedPassword = await hashPassword(data.password);
+    _data = {
+      ...data,
+      password: hashedPassword,
+    };
+  }
+  const user = repo.update(userId, _data);
   return filterSensitiveUserData(user);
 }
 

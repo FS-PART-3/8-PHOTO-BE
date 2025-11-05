@@ -8,15 +8,13 @@ import {
   isValidEmail,
   isValidToken,
 } from "../../auth/utils/token.js";
-import {
-  getPointHistory,
-  getCurrentPoints,
-} from "../points/points.repository.js";
+import { getCurrentPoints } from "../points/points.repository.js";
 import {
   createUser,
   getUser,
   getUserById,
   updateUser,
+  checkPassword,
 } from "./auth.service.js";
 
 const refreshTokenCookieOptions = {
@@ -77,6 +75,28 @@ export async function login(req, res, next) {
     res.status(200).json({ ...user, points: currentPoints, accessToken });
   } catch (error) {
     next(error);
+  }
+}
+
+export async function oauthLogin(req, res, next) {
+  try {
+    const { id } = req.user;
+    const user = await getUserById(id); //실패 시 함수 안에서 에러 throw
+    //console.log("userName: " + user.name);
+    const accessToken = createToken(user);
+    const refreshToken = createToken(user, "refresh");
+
+    //성공 시 리프레시 토큰은 쿠키에 저장.
+    //(백에 저장되는 거라 자동 리프레쉬가 안되네요.)
+    res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
+
+    //액세스 토큰은 프론트 리디렉트 라우터에 쿼리로 전송. (이게 가장 현실적인 방법인 듯 합니다.)
+    //프론트에서 받으면 바로 메인페이지로 페이지를 날리므로 일단 안전합니다.
+    res.redirect(`http://localhost:3000/oauth?accessToken=${accessToken}`);
+
+    // 액세스 토큰을 리턴 하는 방식이 아니라 프론트 원래 페이지로 리다이렉트를 해줘야 해서 res.json()은 없음.
+  } catch (err) {
+    next(err);
   }
 }
 
@@ -152,39 +172,17 @@ export async function check(req, res, next) {
   }
 }
 
-export async function getUserData(req, res, next) {
+export async function updatePassword(req, res, next) {
   try {
     const userId = req.auth?.userId;
-    const user = await getUserById(userId);
-    const points = await getCurrentPoints(user);
+    const { password, newPassword } = req.body;
+    await checkPassword(userId, password);
+    await updateUser(userId, { password: newPassword });
 
-    const data = {
-      ...user,
-      points,
-    };
-    return res.status(200).json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-export async function oauthLogin(req, res, next) {
-  try {
-    const { id } = req.user;
-    const user = await getUserById(id); //실패 시 함수 안에서 에러 throw
-    //console.log("userName: " + user.name);
-    const accessToken = createToken(user);
-    const refreshToken = createToken(user, "refresh");
-
-    //성공 시 리프레시 토큰은 쿠키에 저장.
-    //(백에 저장되는 거라 자동 리프레쉬가 안되네요.)
-    res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-
-    //액세스 토큰은 프론트 리디렉트 라우터에 쿼리로 전송. (이게 가장 현실적인 방법인 듯 합니다.)
-    //프론트에서 받으면 바로 메인페이지로 페이지를 날리므로 일단 안전합니다.
-    res.redirect(`http://localhost:3000/oauth?accessToken=${accessToken}`);
-
-    // 액세스 토큰을 리턴 하는 방식이 아니라 프론트 원래 페이지로 리다이렉트를 해줘야 해서 res.json()은 없음.
+    return res.status(201).json({
+      ok: true,
+      message: "비밀번호 변경에 성공했습니다.",
+    });
   } catch (err) {
     next(err);
   }

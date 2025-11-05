@@ -9,12 +9,12 @@ import {
 import {
   signup,
   login,
+  oauthLogin,
   logout,
   refresh,
   setRefreshToken,
   check,
-  getUserData,
-  oauthLogin,
+  updatePassword,
 } from "./auth.controller.js";
 
 const router = Router();
@@ -214,37 +214,6 @@ router.post("/check", check);
 
 /**
  * @swagger
- * /auth/userdata:
- *   get:
- *     summary: 인증, 인가 여부 판단 (페이지 이동 등)
- *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: 유저 데이터 검색 성공
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id: { type: string, example: "a2636ac4-..." }
- *                 name: { type: string, example: "John Joe" }
- *                 email: { type: string, example: "example@test.com" }
- *                 createdAt: { type: string, example: "2025-11-02T13:27:09.333Z" }
- *                 points: {type: integer, example: "2745" }
- *                 accessToken: {type: string, exmaple: "eyJhbGciOiJIUzI.."}
- *       400:
- *         description: 토큰 형식 오류
- *       401:
- *         description: 인증 실패 (액세스 토큰 없음, 만료)
- *       500:
- *         description: 서버 내부 오류
- */
-router.get("/userdata", verifyAccessToken, getUserData);
-
-/**
- * @swagger
  * /auth/refreshtoken
  *   get:
  *     summary: 액세스 토큰을 통해 리프레쉬 토큰 발급
@@ -268,6 +237,8 @@ router.get("/userdata", verifyAccessToken, getUserData);
  *         description: 서버 내부 오류
  */
 router.post("/refreshtoken", verifyAccessToken, setRefreshToken); //액세스 토큰 인증 필요.
+
+router.post("/reset-password", verifyAccessToken, updatePassword);
 
 /* --- 구글 소셜 로그인(회원가입) --- */
 //구글 로그인 페이지로 이동시키는 라우터
