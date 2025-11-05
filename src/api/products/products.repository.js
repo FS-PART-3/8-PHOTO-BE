@@ -484,13 +484,36 @@ export async function getMarketplaceListings({
     },
   };
 
-  let orderBy = { createdAt: "desc" };
-  if (sort === "oldest") orderBy = { createdAt: "asc" };
+  let orderBy = {};
+  switch (sort) {
+    case "low-price":
+      orderBy = { price: "asc" };
+      break;
+    case "high-price":
+      orderBy = { price: "desc" };
+      break;
+    case "latest":
+    default:
+      orderBy = { createdAt: "desc" };
+      break;
+    case "oldest":
+      orderBy = { createdAt: "asc" };
+      break;
+  }
 
   const listings = await prisma.listing.findMany({
     where,
     include: {
-      photoCards: true,
+      photoCards: {
+        select: {
+          id: true,
+          title: true,
+          grade: true,
+          genre: true,
+          imgUrl: true,
+          description: true,
+        },
+      },
       seller: { select: { id: true, name: true } },
     },
     orderBy,
@@ -498,20 +521,6 @@ export async function getMarketplaceListings({
     skip: cursor ? 1 : 0,
     ...(cursor && { cursor: { id: cursor } }),
   });
-
-  if (sort === "low-price") {
-    listings.sort(
-      (a, b) =>
-        Math.min(...a.photoCards.map((p) => p.price)) -
-        Math.min(...b.photoCards.map((p) => p.price))
-    );
-  } else if (sort === "high-price") {
-    listings.sort(
-      (a, b) =>
-        Math.max(...b.photoCards.map((p) => p.price)) -
-        Math.max(...a.photoCards.map((p) => p.price))
-    );
-  }
 
   return listings;
 }
