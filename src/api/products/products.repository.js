@@ -468,8 +468,7 @@ export async function getMarketplaceListings({
   grade,
   genre,
   soldOut,
-  sortBy,
-  sortOrder,
+  sort = "latest",
   cursor,
   take = 15,
 }) {
@@ -485,19 +484,8 @@ export async function getMarketplaceListings({
     },
   };
 
-  let orderBy;
-  switch (sort) {
-    case "low-price":
-      orderBy = { photoCards: { _min: { price: "asc" } } };
-      break;
-    case "high-price":
-      orderBy = { photoCards: { _min: { price: "desc" } } };
-      break;
-    case "latest":
-    default:
-      orderBy = { createdAt: "desc" };
-      break;
-  }
+  let orderBy = { createdAt: "desc" };
+  if (sort === "oldest") orderBy = { createdAt: "asc" };
 
   const listings = await prisma.listing.findMany({
     where,
@@ -511,6 +499,20 @@ export async function getMarketplaceListings({
     ...(cursor && { cursor: { id: cursor } }),
   });
 
+  if (sort === "low-price") {
+    listings.sort(
+      (a, b) =>
+        Math.min(...a.photoCards.map((p) => p.price)) -
+        Math.min(...b.photoCards.map((p) => p.price))
+    );
+  } else if (sort === "high-price") {
+    listings.sort(
+      (a, b) =>
+        Math.max(...b.photoCards.map((p) => p.price)) -
+        Math.max(...a.photoCards.map((p) => p.price))
+    );
+  }
+
   return listings;
 }
 
@@ -521,8 +523,7 @@ export async function getMyPhotoCards(
   grade,
   genre,
   soldOut,
-  sortBy,
-  sortOrder,
+  sort = "latest",
   cursor,
   take = 6
 ) {
@@ -533,9 +534,9 @@ export async function getMyPhotoCards(
     ...(genre && { genre }),
     ...(soldOut !== undefined && { quantity: soldOut ? 0 : { gt: 0 } }),
   };
-  const orderBy = {};
-  if (sortBy) orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
-  else orderBy["createdAt"] = "desc";
+
+  let orderBy = { createdAt: "desc" };
+  if (sort === "oldest") orderBy = { createdAt: "asc" };
 
   const photos = await prisma.myPhotoCard.findMany({
     where,
