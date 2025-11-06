@@ -26,6 +26,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
             id: true,
             userId: true,
             title: true,
+            imgUrl: true,
             watermarkUrl: true,
             grade: true,
             genre: true,
@@ -450,6 +451,7 @@ export async function findListingById(id) {
         select: {
           id: true,
           title: true,
+          imgUrl: true,
           watermarkUrl: true,
           grade: true,
           genre: true,
@@ -466,6 +468,8 @@ export async function findListingById(id) {
   });
 }
 
+const DEFAULT_TAKE = 15;
+
 // 마켓플레이스 판매 카드 목록 조회 +검색/필터/정렬
 export async function getMarketplaceListings({
   userId,
@@ -475,7 +479,7 @@ export async function getMarketplaceListings({
   soldOut,
   sort = "latest",
   cursor,
-  take = 15,
+  take = DEFAULT_TAKE,
 }) {
   const where = {
     sellerId: userId,
@@ -515,6 +519,7 @@ export async function getMarketplaceListings({
           title: true,
           grade: true,
           genre: true,
+          imgUrl: true,
           watermarkUrl: true,
           description: true,
         },
@@ -539,7 +544,7 @@ export async function getMyPhotoCards(
   soldOut,
   sort = "latest",
   cursor,
-  take = 6
+  take = DEFAULT_TAKE
 ) {
   const where = {
     userId,
