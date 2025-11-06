@@ -77,27 +77,15 @@ export async function createPhotoCardService(userId, photoCardData, file) {
   // 수수료 계산 (10% 반올림)
   const fee = Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE) * photoCardData.quantity;
 
-  // 유저의 현재 포인트 확인
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { 
-      id: true,
-      points: {
-        select: {
-          amount: true,
-        },
-      },
+  // 유저의 현재 포인트 확인 (집계 쿼리로 최적화)
+  const pointSum = await prisma.point.aggregate({
+    where: { userId },
+    _sum: {
+      amount: true,
     },
   });
 
-  if (!user) {
-    const error = new Error("사용자를 찾을 수 없습니다.");
-    error.code = 404;
-    throw error;
-  }
-
-  // 포인트 합계 계산
-  const currentPoint = user.points.reduce((sum, point) => sum + point.amount, 0);
+  const currentPoint = pointSum._sum.amount ?? 0;
 
   if (currentPoint < fee) {
     const error = new Error(

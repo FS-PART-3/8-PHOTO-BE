@@ -3,12 +3,7 @@ import * as service from "./gallery.service.js";
 
 // 마이갤러리 포토카드 조회
 export const getMyGallery = asyncHandler(async (req, res) => {
-  const userId = req.auth?.userId;
-  if (!userId) {
-    const err = new Error("인증이 필요합니다.");
-    err.code = 401;
-    throw err;
-  }
+  const userId = req.auth.userId;
 
   const result = await service.getMyGalleryService(userId, req.query);
 
@@ -17,12 +12,7 @@ export const getMyGallery = asyncHandler(async (req, res) => {
 
 // 포토카드 생성
 export const createPhotoCard = asyncHandler(async (req, res) => {
-  const userId = req.auth?.userId;
-  if (!userId) {
-    const err = new Error("인증이 필요합니다.");
-    err.code = 401;
-    throw err;
-  }
+  const userId = req.auth.userId;
 
   const result = await service.createPhotoCardService(
     userId,

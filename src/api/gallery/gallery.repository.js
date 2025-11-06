@@ -1,7 +1,7 @@
 import { prisma } from "../../config/db.js";
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
-import { PAGINATION } from "../../utils/constants.js";
+import { PAGINATION, GALLERY_SORT_BY, SORT_ORDER } from "../../utils/constants.js";
 
 // 마이갤러리 포토카드 조회
 export async function getMyPhotoCards(userId, params) {
@@ -11,8 +11,8 @@ export async function getMyPhotoCards(userId, params) {
     search, 
     grade, 
     genre, 
-    sortBy = "createdAt", 
-    sortOrder = "desc" 
+    sortBy = GALLERY_SORT_BY.CREATED_AT, 
+    sortOrder = SORT_ORDER.DESC 
   } = params;
 
   // 숫자로 명시적 변환
