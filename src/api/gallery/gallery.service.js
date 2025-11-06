@@ -1,11 +1,12 @@
 import * as repo from "./gallery.repository.js";
-import { uploadBufferToS3 } from "../../config/cloud.js";
+import { uploadBufferToS3, uploadStreamToS3 } from "../../config/cloud.js";
 import { randomUUID } from "crypto";
 import { prisma } from "../../config/db.js";
 import { PHOTO_CARD } from "../../utils/constants.js";
 import sharp from "sharp";
 import path from "path";
 import fs from "fs";
+import { Readable } from "stream";
 
 /**
  * 등급별 개수 계산
@@ -140,21 +141,25 @@ export async function createPhotoCardService(userId, photoCardData, file) {
       contentType: file.mimetype,
     });
 
-    // 워터마크 적용 이미지
     const watermarkPath = path.resolve("src/assets/watermark.png");
-    if (fs.existsSync(watermarkPath)) {
-      const watermarkBuffer = fs.readFileSync(watermarkPath);
 
-      const composedBuffer = await sharp(file.buffer)
+    // 워터마크 적용 이미지
+    if (fs.existsSync(watermarkPath)) {
+      const watermarkStream = fs.createReadStream(watermarkPath);
+
+      const transform = sharp()
         .composite([
-          { input: watermarkBuffer, gravity: "southeast", blend: "overlay" },
+          { input: watermarkStream, gravity: "southeast", blend: "overlay" },
         ])
-        .jpeg()
-        .toBuffer();
+        .jpeg();
+
+      const readable = new Readable();
+      readable.push(file.buffer);
+      readable.push(null);
 
       const watermarkKey = `photo-cards/${randomUUID()}_wm.${fileExtension}`;
-      watermarkUrl = await uploadBufferToS3({
-        buffer: composedBuffer,
+      watermarkUrl = await uploadStreamToS3({
+        stream: readable.pipe(transform),
         key: watermarkKey,
         contentType: "image/jpeg",
       });
