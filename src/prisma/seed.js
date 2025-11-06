@@ -71,9 +71,11 @@ async function main() {
   }
 
   const allListings = await prisma.listing.findMany();
+  const allPhotoCards = await prisma.myPhotoCard.findMany();
   const allExchangeOffers = mockExchangeOffer(
     usersWithHashedPw,
     allListings,
+    allPhotoCards,
     100
   );
   for (const offer of allExchangeOffers) {

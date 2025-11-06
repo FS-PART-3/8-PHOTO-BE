@@ -250,7 +250,6 @@ router.patch(
  *       404:
  *         description: 존재하지 않는 판매글
  */
-// 판매 내리기 (판매 취소)
 router.patch(
   "/marketplace/:listingId/cancel",
   verifyAccessToken,
@@ -262,93 +261,93 @@ router.patch(
  * /marketplace:
  *   get:
  *     summary: 마켓플레이스 판매 카드 목록 조회
- *     description: 검색, 필터, 정렬, 페이지네이션(cursor 기반) 기능을 제공합니다.
- *     tags: [Marketplace]
+ *     tags:
+ *       - Marketplace
+ *     description: >
+ *       검색, 필터, 정렬, 페이지네이션(cursor 기반) 기능을 제공합니다.
+ *
+ *       예시:
+ *       - grade, genre: 필터링 옵션
+ *       - soldOut: 품절 여부 필터 (true면 품절된 카드만, false면 재고 있는 카드만)
+ *       - sort: 정렬 기준 (latest, oldest, low-price, high-price)
+ *       - cursor, take: 페이지네이션
  *     parameters:
  *       - in: query
  *         name: userId
  *         schema:
  *           type: string
- *         description: 특정 판매자 ID로 필터링
+ *         required: true
+ *         description: 판매자 ID
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: 포토카드 제목 검색
+ *         description: 카드 제목 검색어
  *       - in: query
  *         name: grade
  *         schema:
  *           type: string
- *         description: 포토카드 등급 필터
+ *         description: 카드 등급 필터
  *       - in: query
  *         name: genre
  *         schema:
  *           type: string
- *         description: 포토카드 장르 필터
+ *         description: 카드 장르 필터
  *       - in: query
  *         name: soldOut
  *         schema:
  *           type: boolean
- *         description: 품절 여부 필터 (true일 경우 품절 상품만)
+ *         description: 품절 여부 필터 (true면 품절된 카드만 조회)
  *       - in: query
- *         name: sortBy
+ *         name: sort
  *         schema:
  *           type: string
- *           enum: [price, createdAt, quantity]
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
+ *           enum: [latest, oldest, low-price, high-price]
+ *           default: latest
+ *         description: 정렬 기준
  *       - in: query
  *         name: cursor
  *         schema:
  *           type: string
- *         description: 페이지네이션 커서
+ *         description: 커서 기반 페이지네이션을 위한 마지막 카드 ID
  *       - in: query
  *         name: take
  *         schema:
  *           type: integer
  *           default: 15
- *         description: 한 번에 가져올 데이터 수
+ *         description: 한 번에 가져올 데이터 개수
  *     responses:
  *       200:
- *         description: 성공적으로 판매 카드 목록을 반환함
+ *         description: 마켓플레이스 판매 카드 목록 반환
  *         content:
  *           application/json:
  *             example:
  *               message: "마켓플레이스 판매 카드 목록 조회 성공"
  *               data:
- *                 - id: "07d1..."
- *                   sellerId: "550e..."
- *                   price: 50
+ *                 - id: "listing-550e8400-e29b-41d4-a716-446655440001-1"
+ *                   sellerId: "550e8400-e29b-41d4-a716-446655440001"
+ *                   price: 99
  *                   quantity: 1
  *                   initQuantity: 1
  *                   status: "FOR_SALE"
- *                   preferredGrade: "RARE"
+ *                   preferredGrade: "COMMON"
  *                   preferredGenre: "풍경"
- *                   preferredDescription: "선호 카드 설명"
+ *                   preferredDescription: "교환 희망합니다."
  *                   isDeleted: false
- *                   createdAt: "2025-10-27T09:14:06.209Z"
- *                   updatedAt: "2025-10-27T09:14:06.209Z"
+ *                   createdAt: "2025-10-27T08:41:35.933Z"
+ *                   updatedAt: "2025-10-27T08:41:35.933Z"
  *                   photoCards:
- *                     - id: "photo-550e..."
- *                       userId: "550e..."
+ *                     - id: "photo-550e8400-e29b-41d4-a716-446655440001-1"
  *                       title: "스페인 여행"
  *                       grade: "COMMON"
  *                       genre: "풍경"
- *                       price: 5
- *                       quantity: 9
  *                       imgUrl: "images/photo_1.svg"
  *                       description: "COMMON 등급의 풍경 테마 카드입니다."
- *                       isDeleted: false
- *                       createdAt: "2025-10-27T08:41:35.557Z"
- *                       updatedAt: "2025-10-27T08:41:35.557Z"
  *                   seller:
- *                     id: "550e..."
+ *                     id: "550e8400-e29b-41d4-a716-446655440001"
  *                     name: "유디"
- *       500:
- *         description: 서버 오류
+ *       404:
+ *         description: 해당 조건에 맞는 판매 카드 없음
  */
 router.get("/marketplace", controller.getMarketplaceListings);
 

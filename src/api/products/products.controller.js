@@ -3,7 +3,7 @@ import { asyncHandler } from "../../middlewares/asyncHandler.js";
 import * as service from "./products.service.js";
 
 export const purchase = asyncHandler(async (req, res) => {
-  const buyerId = req.auth.userId; //  유저 기능 적용
+  const buyerId = req.auth?.userId; //  유저 기능 적용
   const { listingId } = req.params;
   const { quantity } = req.body;
 
@@ -17,21 +17,25 @@ export const purchase = asyncHandler(async (req, res) => {
 });
 
 export const createExchangeOffer = asyncHandler(async (req, res) => {
-  const offeredById = req.auth.userId; //  유저 기능 적용
+  console.log("[createExchangeOffer body]", req.body);
+  console.log("[createExchangeOffer params]", req.params);
+
+  const offeredById = req.auth?.userId; //  유저 기능 적용
   const { listingId } = req.params;
-  const { offeredDescription } = req.body;
+  const { offeredDescription, offeredPhotoId } = req.body;
 
   const result = await service.createExchangeOffer({
-    offeredById,
+    userId: offeredById,
     listingId,
     offeredDescription,
+    offeredPhotoId,
   });
   return res.status(201).json(result);
 });
 
 // 마켓플레이스 판매 수정
 export const updateListing = asyncHandler(async (req, res) => {
-  const sellerId = req.auth?.userId ?? req.user?.userId ?? req.user?.id;
+  const sellerId = req.auth?.userId;
   const { listingId } = req.params;
   const payload = req.body;
 
@@ -40,7 +44,7 @@ export const updateListing = asyncHandler(async (req, res) => {
 });
 // 마켓플레이스 판매 내리기 (판매 취소)
 export const cancelListing = asyncHandler(async (req, res) => {
-  const sellerId = req.user?.id ?? req.auth?.userId;
+  const sellerId = req.auth?.userId;
   const { listingId } = req.params;
 
   const result = await service.cancelListing({ sellerId, listingId });
@@ -66,7 +70,7 @@ export const getMarketplaceListings = asyncHandler(async (req, res) => {
 
 // 내 포토카드 목록
 export const getMyPhotoCards = asyncHandler(async (req, res) => {
-  const userId = req.user?.id ?? req.query.userId;
+  const userId = req.auth?.userId;
   const params = req.query;
   const photos = await service.getMyPhotoCardsService(userId, params);
   res.status(200).json({
@@ -87,11 +91,8 @@ export const getMyPhotoCardById = asyncHandler(async (req, res) => {
 
 // 판매 등록
 export const createListing = asyncHandler(async (req, res) => {
-  const sellerId = req.user?.id ?? req.query.userId;
-  if (!sellerId)
-    return res
-      .status(401)
-      .json({ message: "로그인이 필요합니다.", data: null });
+  const sellerId = req.auth?.userId;
+  if (!sellerId) return res.status(401).json({ message: "로그인이 필요합니다.", data: null });
 
   const data = { ...req.body, sellerId };
 

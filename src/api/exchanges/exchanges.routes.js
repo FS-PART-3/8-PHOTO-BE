@@ -236,5 +236,17 @@ router.patch(
   verifyAccessToken,
   controller.cancelExchangeOffer,
 );
+// 교환 조회
+router.get(
+  "/marketplace/:listingId/exchange-offers/mine",
+  verifyAccessToken,
+  controller.getMyExchangeOffers,
+);
+
+router.get(
+  "/marketplace/:listingId/exchange-offers",
+  verifyAccessToken,
+  controller.getOffersForMyListing,
+);
 
 export default router;

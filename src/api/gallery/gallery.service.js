@@ -1,8 +1,12 @@
 import * as repo from "./gallery.repository.js";
-import { uploadBufferToS3 } from "../../config/cloud.js";
+import { uploadBufferToS3, uploadStreamToS3 } from "../../config/cloud.js";
 import { randomUUID } from "crypto";
 import { prisma } from "../../config/db.js";
 import { PHOTO_CARD } from "../../utils/constants.js";
+import sharp from "sharp";
+import path from "path";
+import fs from "fs";
+import { Readable } from "stream";
 
 /**
  * 등급별 개수 계산
@@ -27,19 +31,22 @@ const formatGradeCounts = (gradeCountsArray) => {
 // 마이갤러리 포토카드 조회
 export async function getMyGalleryService(userId, params) {
   const result = await repo.getMyPhotoCards(userId, params);
-  
+
   // 이번 달 생성 기회 정보 추가
   const usedCreations = await repo.getMonthlyCreationCount(userId);
-  const remainingCreations = Math.max(0, PHOTO_CARD.MAX_MONTHLY_CREATIONS - usedCreations);
-  
+  const remainingCreations = Math.max(
+    0,
+    PHOTO_CARD.MAX_MONTHLY_CREATIONS - usedCreations
+  );
+
   // 현재 날짜 정보
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 0부터 시작하므로 +1
-  
+
   // 등급별 개수 포맷팅
   const gradeCounts = formatGradeCounts(result.gradeCountsArray || []);
-  
+
   return {
     data: result.data,
     pagination: result.pagination,
@@ -57,6 +64,12 @@ export async function getMyGalleryService(userId, params) {
   };
 }
 
+/**
+ * 포토카드 생성 (원본 + 워터마크 업로드)
+ * @param {string} userId
+ * @param {object} photoCardData
+ * @param {Express.Multer.File} file - 업로드 이미지
+ */
 // 포토카드 생성
 export async function createPhotoCardService(userId, photoCardData, file) {
   // 파일이 없으면 에러
@@ -65,17 +78,21 @@ export async function createPhotoCardService(userId, photoCardData, file) {
     error.code = 400;
     throw error;
   }
- 
+
   // 생성 횟수 체크 (한 달에 최대 생성 가능 횟수 확인)
   const createCount = await repo.getMonthlyCreationCount(userId);
   if (createCount >= PHOTO_CARD.MAX_MONTHLY_CREATIONS) {
-    const error = new Error(`한 달에 최대 ${PHOTO_CARD.MAX_MONTHLY_CREATIONS}번까지만 포토카드를 생성할 수 있습니다.`);
+    const error = new Error(
+      `한 달에 최대 ${PHOTO_CARD.MAX_MONTHLY_CREATIONS}번까지만 포토카드를 생성할 수 있습니다.`
+    );
     error.code = 400;
     throw error;
   }
 
   // 수수료 계산 (10% 반올림)
-  const fee = Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE) * photoCardData.quantity;
+  const fee =
+    Math.round(photoCardData.price * PHOTO_CARD.CREATION_FEE_RATE) *
+    photoCardData.quantity;
 
   // 유저의 현재 포인트 확인 (집계 쿼리로 최적화)
   const pointSum = await prisma.point.aggregate({
@@ -97,16 +114,43 @@ export async function createPhotoCardService(userId, photoCardData, file) {
 
   // S3에 이미지 업로드
   let imgUrl;
+  let watermarkUrl = null;
   try {
     const fileExtension = file.originalname.split(".").pop();
-    const key = `photo-cards/${randomUUID()}.${fileExtension}`;
+
+    // 원본 이미지
+    const imgkey = `photo-cards/${randomUUID()}.${fileExtension}`;
     imgUrl = await uploadBufferToS3({
       buffer: file.buffer,
-      key,
+      key: imgkey,
       contentType: file.mimetype,
     });
+
+    const watermarkPath = path.resolve("src/assets/watermark.png");
+
+    // 워터마크 적용 이미지
+    if (fs.existsSync(watermarkPath)) {
+      const watermarkStream = fs.createReadStream(watermarkPath);
+
+      const transform = sharp()
+        .composite([
+          { input: watermarkStream, gravity: "southeast", blend: "overlay" },
+        ])
+        .jpeg();
+
+      const readable = new Readable();
+      readable.push(file.buffer);
+      readable.push(null);
+
+      const watermarkKey = `photo-cards/${randomUUID()}_wm.${fileExtension}`;
+      watermarkUrl = await uploadStreamToS3({
+        stream: readable.pipe(transform),
+        key: watermarkKey,
+        contentType: "image/jpeg",
+      });
+    }
   } catch (error) {
-    const err = new Error("이미지 업로드에 실패했습니다.");
+    const err = new Error("이미지 업로드 또는 워터마크 적용에 실패했습니다.");
     err.code = 500;
     throw err;
   }
@@ -114,7 +158,12 @@ export async function createPhotoCardService(userId, photoCardData, file) {
   // 포토카드 생성 및 포인트 차감을 트랜잭션으로 처리
   const result = await prisma.$transaction(async (tx) => {
     // 포토카드 생성
-    const myPhotoCard = await repo.createPhotoCard(userId, photoCardData, imgUrl);
+    const myPhotoCard = await repo.createPhotoCard(
+      userId,
+      photoCardData,
+      imgUrl,
+      watermarkUrl
+    );
 
     // 포인트 사용 내역 기록 (차감)
     await tx.point.create({
@@ -141,6 +190,7 @@ export async function createPhotoCardService(userId, photoCardData, file) {
       price: result.price,
       quantity: result.quantity,
       imgUrl: result.imgUrl,
+      watermarkUrl: result.watermarkUrl,
       description: result.description,
       fee,
     },

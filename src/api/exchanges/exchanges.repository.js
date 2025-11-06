@@ -184,7 +184,64 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
     };
   });
 }
+// 교환 조회
 
+// 구매자
+export async function findOffersByUser({ listingId, userId }) {
+  return prisma.exchangeOffer.findMany({
+    where: {
+      listingId,
+      offeredById: userId,
+      isDeleted: false,
+      status: { in: ["PENDING"] },
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      offeredPhoto: {
+        select: {
+          id: true,
+          title: true,
+          grade: true,
+          genre: true,
+          quantity: true,
+          imgUrl: true,
+          price: true,
+        },
+      },
+      offeredBy: {
+        select: { id: true, name: true },
+      },
+    },
+  });
+}
+
+export async function findOffersForSeller({ listingId, sellerId }) {
+  return prisma.exchangeOffer.findMany({
+    where: {
+      listingId,
+      listing: { sellerId },
+      isDeleted: false,
+      status: { in: ["PENDING"] },
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      offeredPhoto: {
+        select: {
+          id: true,
+          title: true,
+          grade: true,
+          genre: true,
+          quantity: true,
+          imgUrl: true,
+          price: true,
+        },
+      },
+      offeredBy: {
+        select: { id: true, name: true, email: true },
+      },
+    },
+  });
+}
 // 교환 취소
 export async function runCancelExchangeOfferTransaction({ offeredById, offerId }) {
   return await prisma.$transaction(async (tx) => {

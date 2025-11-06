@@ -103,7 +103,12 @@ export async function getMonthlyCreationCount(userId) {
 }
 
 // 포토카드 생성
-export async function createPhotoCard(userId, photoCardData, imgUrl) {
+export async function createPhotoCard(
+  userId,
+  photoCardData,
+  imgUrl,
+  watermarkUrl
+) {
   const { title, grade, genre, price, quantity, description } = photoCardData;
 
   const myPhotoCard = await prisma.myPhotoCard.create({
@@ -116,6 +121,7 @@ export async function createPhotoCard(userId, photoCardData, imgUrl) {
       price,
       quantity,
       imgUrl,
+      watermarkUrl,
       description,
     },
   });

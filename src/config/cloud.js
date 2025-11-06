@@ -1,11 +1,18 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { env } from "./env.js";
 
 // S3 클라이언트 초기화
 export const s3 = new S3Client({
   region: env.AWS_REGION,
   credentials: env.AWS_ACCESS_KEY_ID
-    ? { accessKeyId: env.AWS_ACCESS_KEY_ID, secretAccessKey: env.AWS_SECRET_ACCESS_KEY }
+    ? {
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      }
     : undefined,
 });
 
@@ -17,6 +24,20 @@ export async function uploadBufferToS3({ buffer, key, contentType }) {
     Bucket: env.S3_BUCKET,
     Key: key,
     Body: buffer,
+    ContentType: contentType || "application/octet-stream",
+  };
+  await s3.send(new PutObjectCommand(input));
+  return `https://${env.S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+}
+
+/**
+ * S3에 Stream 업로드
+ */
+export async function uploadStreamToS3({ stream, key, contentType }) {
+  const input = {
+    Bucket: env.S3_BUCKET,
+    Key: key,
+    Body: stream, // Buffer 대신 Stream 사용
     ContentType: contentType || "application/octet-stream",
   };
   await s3.send(new PutObjectCommand(input));

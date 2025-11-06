@@ -23,10 +23,17 @@ const mockExchangeOffer = (users, listings, count = 20) => {
     const offeredBy =
       possibleUsers[Math.floor(Math.random() * possibleUsers.length)];
 
+    const userCards = myPhotoCards.filter((c) => c.userId === offeredBy.id);
+    if (userCards.length === 0) continue; // 카드가 없으면 건너뜀
+
+    const offeredPhoto =
+      userCards[Math.floor(Math.random() * userCards.length)];
+
     offers.push({
       id: `exchange-${listing.id}-${offeredBy.id}-${i + 1}`,
       listingId: listing.id,
       offeredById: offeredBy.id,
+      offeredPhotoId: offeredPhoto.id,
       offeredDescription,
       isDeleted: false,
       createdAt: new Date(),

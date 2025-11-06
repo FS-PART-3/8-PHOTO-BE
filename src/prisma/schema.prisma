@@ -55,19 +55,26 @@ model MyPhotoCard {
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String
 
-    title       String
-    grade       Grade
-    genre       Genre
-    price       Int
-    quantity    Int
-    imgUrl      String
-    description String
+    title        String
+    grade        Grade
+    genre        Genre
+    price        Int
+    quantity     Int
+    imgUrl       String
+    watermarkUrl String?
+    description  String
 
     isDeleted Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    listing Listing[] @relation("PhotoCardListings")
+    listing       Listing[]       @relation("PhotoCardListings")
+    ExchangeOffer ExchangeOffer[]
+
+    @@index([title])
+    @@index([grade])
+    @@index([genre])
+    @@index([createdAt])
 }
 
 enum ListingStatus {
@@ -98,6 +105,11 @@ model Listing {
     photoCards     MyPhotoCard[]   @relation("PhotoCardListings")
     transactions   Transaction[]
     exchangeOffers ExchangeOffer[]
+
+    @@index([price])
+    @@index([status])
+    @@index([quantity])
+    @@index([createdAt])
 }
 
 model Transaction {
@@ -121,11 +133,13 @@ enum OfferStatus {
 }
 
 model ExchangeOffer {
-    id          String  @id
-    listing     Listing @relation(fields: [listingId], references: [id])
-    listingId   String
-    offeredBy   User    @relation(fields: [offeredById], references: [id], onDelete: Cascade)
-    offeredById String
+    id             String       @id
+    listing        Listing      @relation(fields: [listingId], references: [id])
+    listingId      String
+    offeredBy      User         @relation(fields: [offeredById], references: [id], onDelete: Cascade)
+    offeredById    String
+    offeredPhoto   MyPhotoCard? @relation(fields: [offeredPhotoId], references: [id])
+    offeredPhotoId String?
 
     offeredDescription String
     status             OfferStatus @default(PENDING)
@@ -211,4 +225,6 @@ model History {
     newData      Json?
 
     createdAt DateTime @default(now())
+
+    @@index([userId])
 }
