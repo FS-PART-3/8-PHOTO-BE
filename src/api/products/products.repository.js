@@ -481,6 +481,10 @@ export async function getMarketplaceListings({
   cursor,
   take = DEFAULT_TAKE,
 }) {
+  // take를 숫자로 변환
+  const parsedTake = typeof take === 'string' ? parseInt(take, 10) : take;
+  const finalTake = isNaN(parsedTake) ? DEFAULT_TAKE : parsedTake;
+
   const where = {
     sellerId: userId,
     photoCards: {
@@ -527,7 +531,7 @@ export async function getMarketplaceListings({
       seller: { select: { id: true, name: true } },
     },
     orderBy,
-    take,
+    take: finalTake,
     skip: cursor ? 1 : 0,
     ...(cursor && { cursor: { id: cursor } }),
   });
@@ -546,6 +550,10 @@ export async function getMyPhotoCards(
   cursor,
   take = DEFAULT_TAKE
 ) {
+  // take를 숫자로 변환
+  const parsedTake = typeof take === 'string' ? parseInt(take, 10) : take;
+  const finalTake = isNaN(parsedTake) ? DEFAULT_TAKE : parsedTake;
+
   const where = {
     userId,
     ...(search && { title: { contains: search, mode: "insensitive" } }),
@@ -561,7 +569,7 @@ export async function getMyPhotoCards(
     where,
     include: { user: { select: { name: true, id: true } } },
     orderBy,
-    take,
+    take: finalTake,
     skip: cursor ? 1 : 0,
     ...(cursor && { cursor: { id: cursor } }),
   });
