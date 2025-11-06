@@ -1,10 +1,11 @@
 import * as repo from "./exchanges.repository.js";
 
 export async function approveExchangeOffer({ sellerId, offerId }) {
-  const { offerAfter, listingAfter } = await repo.runApproveExchangeOfferTransaction({
-    sellerId,
-    offerId,
-  });
+  const { offerAfter, listingAfter } =
+    await repo.runApproveExchangeOfferTransaction({
+      sellerId,
+      offerId,
+    });
 
   return {
     exchangeId: offerAfter.id,
@@ -36,7 +37,7 @@ function toClientOfferForBuyer(o) {
           grade: o.offeredPhoto.grade,
           genre: o.offeredPhoto.genre,
           quantity: Number(o.offeredPhoto.quantity ?? 0),
-          imgUrl: o.offeredPhoto.imgUrl || null,
+          imgUrl: o.offeredPhoto.watermarkUrl || o.offeredPhoto.imgUrl || null,
         }
       : null,
   };
@@ -56,7 +57,7 @@ function toClientOfferForSeller(o) {
           grade: o.offeredPhoto.grade,
           genre: o.offeredPhoto.genre,
           quantity: Number(o.offeredPhoto.quantity ?? 0),
-          imgUrl: o.offeredPhoto.imgUrl || null,
+          imgUrl: o.offeredPhoto.watermarkUrl || o.offeredPhoto.imgUrl || null,
         }
       : null,
   };
@@ -74,5 +75,7 @@ export async function getExchangeOffers({ listingId, userId, mine }) {
   return rows.map(toClientOfferForSeller);
 }
 
-export const getMyExchangeOffers = (args) => getExchangeOffers({ ...args, mine: true });
-export const getOffersForMyListing = (args) => getExchangeOffers({ ...args, mine: false });
+export const getMyExchangeOffers = (args) =>
+  getExchangeOffers({ ...args, mine: true });
+export const getOffersForMyListing = (args) =>
+  getExchangeOffers({ ...args, mine: false });
