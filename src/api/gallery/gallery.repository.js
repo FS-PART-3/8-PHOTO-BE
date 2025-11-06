@@ -50,12 +50,25 @@ export async function getMyPhotoCards(userId, params) {
     [sortBy]: sortOrder,
   };
 
-  // 포토카드 조회
+  // 포토카드 조회 (거래중인 listing 정보 포함)
   const myPhotoCards = await prisma.myPhotoCard.findMany({
     where,
     orderBy,
     skip: pageNum * sizeNum,
     take: sizeNum,
+    include: {
+      listing: {
+        where: {
+          status: {
+            in: ["FOR_SALE", "FOR_EXCHANGE"],
+          },
+          isDeleted: false,
+        },
+        select: {
+          quantity: true,
+        },
+      },
+    },
   });
 
   // 전체 개수 조회

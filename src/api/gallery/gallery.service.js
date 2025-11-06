@@ -32,6 +32,26 @@ const formatGradeCounts = (gradeCountsArray) => {
 export async function getMyGalleryService(userId, params) {
   const result = await repo.getMyPhotoCards(userId, params);
 
+  // 거래 가능한 수량 계산
+  const photoCardsWithAvailableQty = result.data.map((card) => {
+    // 거래중인 총 수량 계산 (FOR_SALE, FOR_EXCHANGE 상태의 listing 수량 합계)
+    const inTradeQuantity = card.listing.reduce(
+      (sum, listing) => sum + listing.quantity,
+      0
+    );
+    
+    // 거래 가능한 수량 = 총 수량 - 거래중인 수량
+    const availableQuantity = card.quantity - inTradeQuantity;
+
+    // listing 정보는 제외하고 반환
+    const { listing, ...cardData } = card;
+
+    return {
+      ...cardData,
+      availableQuantity, // 거래 가능한 수량
+    };
+  });
+
   // 이번 달 생성 기회 정보 추가
   const usedCreations = await repo.getMonthlyCreationCount(userId);
   const remainingCreations = Math.max(
@@ -48,7 +68,7 @@ export async function getMyGalleryService(userId, params) {
   const gradeCounts = formatGradeCounts(result.gradeCountsArray || []);
 
   return {
-    data: result.data,
+    data: photoCardsWithAvailableQty,
     pagination: result.pagination,
     countsGroup: {
       totalCounts: result.pagination.total,
