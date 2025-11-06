@@ -24,6 +24,7 @@ const SALES_CARD_SELECT = {
       grade: true,
       genre: true,
       imgUrl: true,
+      watermarkUrl: true,
     },
   },
 };
@@ -94,7 +95,8 @@ export const findAllSalesCards = async (where, pagination) => {
     title: listing.photoCards[0]?.title,
     grade: listing.photoCards[0]?.grade,
     genre: listing.photoCards[0]?.genre,
-    imgUrl: listing.photoCards[0]?.imgUrl,
+    imgUrl:
+      listing.photoCards[0]?.watermarkUrl || listing.photoCards[0]?.imgUrl,
     createdAt: listing.createdAt,
     updatedAt: listing.updatedAt,
     user: listing.seller,
