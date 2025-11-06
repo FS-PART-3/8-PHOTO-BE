@@ -5,14 +5,14 @@ import { PAGINATION } from "../../utils/constants.js";
 
 // 마이갤러리 포토카드 조회
 export async function getMyPhotoCards(userId, params) {
-  const { 
-    page = PAGINATION.GALLERY_DEFAULT_PAGE, 
-    size = PAGINATION.GALLERY_DEFAULT_SIZE, 
-    search, 
-    grade, 
-    genre, 
-    sortBy = "createdAt", 
-    sortOrder = "desc" 
+  const {
+    page = PAGINATION.GALLERY_DEFAULT_PAGE,
+    size = PAGINATION.GALLERY_DEFAULT_SIZE,
+    search,
+    grade,
+    genre,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = params;
 
   // 숫자로 명시적 변환
@@ -103,7 +103,12 @@ export async function getMonthlyCreationCount(userId) {
 }
 
 // 포토카드 생성
-export async function createPhotoCard(userId, photoCardData, imgUrl) {
+export async function createPhotoCard(
+  userId,
+  photoCardData,
+  imgUrl,
+  watermarkUrl
+) {
   const { title, grade, genre, price, quantity, description } = photoCardData;
 
   const myPhotoCard = await prisma.myPhotoCard.create({
@@ -116,6 +121,7 @@ export async function createPhotoCard(userId, photoCardData, imgUrl) {
       price,
       quantity,
       imgUrl,
+      watermarkUrl,
       description,
     },
   });

@@ -27,7 +27,7 @@ export const createPhotoCard = asyncHandler(async (req, res) => {
   const result = await service.createPhotoCardService(
     userId,
     req.body,
-    req.file
+    req.files?.image?.[0]
   );
 
   return res.status(201).json(result);
