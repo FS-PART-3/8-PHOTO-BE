@@ -99,6 +99,7 @@ export async function getListingDetail({ listingId }) {
     quantity: listing.quantity ?? 0,
     initQuantity: listing.initQuantity ?? listing.quantity ?? 0,
     status: listing.status,
+    sellerId: listing.sellerId,
     seller,
 
     myPhotoCard: primaryCard,
