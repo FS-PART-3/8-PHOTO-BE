@@ -109,6 +109,6 @@ export async function oauthCreateOrUpdate(provider, providerId, email, name) {
 }
 
 function filterSensitiveUserData(user) {
-  const { id, email, name, createdAt } = user;
-  return { id, email, name, createdAt };
+  const { id, email, name, createdAt, provider } = user;
+  return { id, email, name, provider, createdAt };
 }
