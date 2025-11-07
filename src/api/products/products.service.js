@@ -139,16 +139,7 @@ export async function getMyPhotoCardByIdService(myPhotoCardId) {
 
 // 판매 등록
 export async function createListingService(data) {
-  const { sellerId, myPhotoCardId, quantity } = data;
-
-  // 포토카드 보유 수량 확인
-  const myPhotoCard = await repo.getMyPhotoCardById(myPhotoCardId);
-
-  if (myPhotoCard.quantity < quantity) {
-    const error = new Error(`보유 수량(${myPhotoCard.quantity})보다 많은 수량을 등록할 수 없습니다.`);
-    error.statusCode = 400;
-    throw error;
-  }
+  const { sellerId } = data;
 
   // 이번 달 1일 00:00 계산
   const now = new Date();
