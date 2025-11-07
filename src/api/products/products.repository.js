@@ -376,7 +376,9 @@ export async function cancelListing({ sellerId, listingId }) {
         sellerId: true,
         status: true,
         quantity: true,
-        myPhotoCardId: true,
+        photoCards: {
+          select: { id: true },
+        },
       },
     });
 
@@ -410,7 +412,7 @@ export async function cancelListing({ sellerId, listingId }) {
     }
     const cancelled = await tx.listing.findUnique({
       where: { id: listingId },
-      select: { id: true, status: true, quantity: true, myPhotoCardId: true },
+      select: { id: true, status: true, quantity: true, photoCards: { select: { id: true } } },
     });
 
     // 4) 알림 생성
@@ -418,7 +420,7 @@ export async function cancelListing({ sellerId, listingId }) {
       data: {
         id: randomUUID(),
         userId: sellerId,
-        type: "LISTING_CANCELLED",
+        type: "SOLD_OUT",
         payload: { listingId: cancelled.id, restoredQty: cancelled.quantity },
       },
     });
