@@ -158,7 +158,11 @@ export async function runApproveExchangeOfferTransaction({
         id: randomUUID(),
         userId: offer.offeredById, // 교환 신청자에게 알림
         type: "EXCHANGE_ACCEPTED",
-        payload: { listingId: listing.id, offerId: offer.id },
+        payload: {
+          listingId: listing.id,
+          offerId: offer.id,
+          message: `${listing.title} 교환 요청이 승인되었습니다.`,
+        },
       },
     });
 
@@ -218,7 +222,11 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
         id: randomUUID(),
         userId: offer.offeredById,
         type: "EXCHANGE_REJECTED",
-        payload: { listingId: listing.id, offerId: offer.id },
+        payload: {
+          listingId: listing.id,
+          offerId: offer.id,
+          message: `${listing.title} 교환 요청이 거절되었습니다.`,
+        },
       },
     });
 
@@ -329,7 +337,7 @@ export async function runCancelExchangeOfferTransaction({
     // 4) 알림 생성
     const listing = await tx.listing.findUnique({
       where: { id: offer.listingId },
-      select: { id: true, sellerId: true },
+      select: { id: true, sellerId: true, title: true },
     });
     if (listing) {
       await tx.notification.create({
@@ -341,6 +349,7 @@ export async function runCancelExchangeOfferTransaction({
             listingId: listing.id,
             offerId: offer.id,
             reason: "CANCELLED_BY_OFFERER",
+            message: `교환 신청자가 '${listing.title}' 교환 요청을 취소했습니다.`,
           },
         },
       });

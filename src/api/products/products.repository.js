@@ -2,6 +2,7 @@
 import { id } from "zod/locales";
 import { prisma } from "../../config/db.js";
 import { randomUUID } from "crypto";
+import { title } from "process";
 async function getUserPointBalance(tx, userId) {
   const agg = await tx.point.aggregate({
     where: { userId },
@@ -21,6 +22,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         price: true,
         quantity: true,
         status: true,
+        title: true,
         photoCards: {
           select: {
             id: true,
@@ -217,6 +219,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
             transactionId: transaction.id,
             quantity,
             totalAmount,
+            message: `'${listing.title}' 구매가 완료되었습니다.`,
           },
         },
         {
@@ -229,6 +232,10 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
             transactionId: transaction.id,
             quantity,
             totalAmount,
+            message:
+              listingAfter.status === "SOLD_OUT"
+                ? `'${listing.title}'이(가) 모두 판매되어 품절되었습니다.`
+                : `'${listing.title}'이(가) 판매되었습니다.`,
           },
         },
       ],
@@ -249,7 +256,7 @@ export async function runCreateExchangeOfferTransaction({
     // 1) 판매글 조회
     const listing = await tx.listing.findUnique({
       where: { id: listingId },
-      select: { id: true, sellerId: true, status: true },
+      select: { id: true, sellerId: true, status: true, title: true },
     });
     if (!listing)
       throw Object.assign(new Error("존재하지 않는 판매글입니다."), {
@@ -304,6 +311,7 @@ export async function runCreateExchangeOfferTransaction({
           offerId: offer.id,
           offeredById,
           offeredDescription,
+          message: `새로운 교환 제안이 도착했습니다. '${listing.title}'에 대한 교환 요청을 확인해보세요.`,
         },
       },
     });
@@ -376,6 +384,7 @@ export async function cancelListing({ sellerId, listingId }) {
         sellerId: true,
         status: true,
         quantity: true,
+        title: true,
         photoCards: {
           select: { id: true },
         },
@@ -421,7 +430,8 @@ export async function cancelListing({ sellerId, listingId }) {
         id: randomUUID(),
         userId: sellerId,
         type: "SOLD_OUT",
-        payload: { listingId: cancelled.id, restoredQty: cancelled.quantity },
+        payload: { listingId: cancelled.id },
+        message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
       },
     });
 
