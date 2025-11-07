@@ -12,7 +12,7 @@ export async function createUser(user) {
   try {
     const existedUser = await repo.findByEmail(user.email);
     if (existedUser) {
-      const error = new Error("User already exists");
+      const error = new Error("이미 사용 중인 이메일입니다.");
       error.code = 409;
       error.data = { email: user.email };
       throw error;

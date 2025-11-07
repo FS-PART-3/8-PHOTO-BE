@@ -6,6 +6,9 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middlewares/index.js";
+import session from "express-session";
+import cookieParser from "cookie-parser";
+import passport from "./config/passport.js";
 
 import apiRouter from "./api/index.js";
 import startCronJob from "./utils/cronjob.js";
@@ -16,6 +19,11 @@ const app = express();
 
 applySecurity(app); // helmet, compression, body-parser
 app.use(corsMiddleware);
+app.use(cookieParser()); //req 쿠키 자동포함 미들웨어
+
+//구글 Oauth용
+app.use(session({ secret: "secret", resave: false, saveUninitialized: false }));
+app.use(passport.initialize());
 
 //  2. 헬스 체크
 
