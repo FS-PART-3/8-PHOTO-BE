@@ -3,7 +3,12 @@ import * as notificationsService from "./notifications.service.js";
 export const getNotifications = async (req, res, next) => {
   try {
     const userId = req.auth?.userId;
-    const result = await notificationsService.getNotifications(userId);
+    const { cursor, limit } = req.query;
+
+    const result = await notificationsService.getNotifications(userId, {
+      cursor,
+      limit: Number(limit) || 5,
+    });
 
     return res.status(200).json(result);
   } catch (error) {
