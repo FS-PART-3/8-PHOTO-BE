@@ -48,7 +48,7 @@ function toClientOfferForSeller(o) {
     status: o.status,
     offeredDescription: o.offeredDescription || "",
     createdAt: o.createdAt,
-    buyer: { id: o.offeredById },
+    buyer: { id: o.offeredById, name: o.offeredBy?.name ?? null },
     myCard: o.offeredPhoto
       ? {
           id: o.offeredPhoto.id,

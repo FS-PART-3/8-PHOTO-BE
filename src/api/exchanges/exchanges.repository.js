@@ -237,7 +237,7 @@ export async function findOffersForSeller({ listingId, sellerId }) {
         },
       },
       offeredBy: {
-        select: { id: true, name: true, email: true },
+        select: { id: true, name: true },
       },
     },
   });
