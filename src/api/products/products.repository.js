@@ -420,7 +420,7 @@ export async function findListingById(id) {
       isDeleted: true,
       createdAt: true,
       updatedAt: true,
-
+      sellerId: true,
       seller: {
         select: {
           id: true,
