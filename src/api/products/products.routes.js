@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyAccessToken } from "../../middlewares/authGuard.js";
 import { validate } from "../../middlewares/validate.middleware.js";
+import { checkPhotoCardQuantity } from "../../middlewares/checkQuantity.middleware.js";
 import {
   purchaseSchema,
   createExchangeSchema,
@@ -526,6 +527,7 @@ router.post(
   "/marketplace/listings",
   verifyAccessToken,
   validate(createListingSchema),
+  checkPhotoCardQuantity,
   controller.createListing
 );
 
