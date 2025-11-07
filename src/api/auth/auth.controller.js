@@ -92,7 +92,7 @@ export async function oauthLogin(req, res, next) {
 
     //액세스 토큰은 프론트 리디렉트 라우터에 쿼리로 전송. (이게 가장 현실적인 방법인 듯 합니다.)
     //프론트에서 받으면 바로 메인페이지로 페이지를 날리므로 일단 안전합니다.
-    res.redirect(`http://localhost:3000/oauth?accessToken=${accessToken}`);
+    res.redirect(`${process.env.CORS_ORIGIN}/oauth?accessToken=${accessToken}`);
 
     // 액세스 토큰을 리턴 하는 방식이 아니라 프론트 원래 페이지로 리다이렉트를 해줘야 해서 res.json()은 없음.
   } catch (err) {
