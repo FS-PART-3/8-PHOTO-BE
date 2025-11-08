@@ -1,7 +1,3 @@
-// 예시파일입니다. 필요시 지우고 사용하세요.
-// import * as service from "./auth.service.js";
-// import asyncHandler from "../../middlewares/asyncHandler.js";
-
 import {
   createToken,
   refreshAccessToken,
@@ -18,10 +14,10 @@ import {
 } from "./auth.service.js";
 
 const refreshTokenCookieOptions = {
-  path: "/auth/refresh", //쿠키 경로 고정.
+  path: "/", //쿠키 경로 고정.
   httpOnly: true, //JS 접근 불가
-  secure: false, //로컬 실험용. -> 배포 true
-  sameSite: "Lax", //로컬 실험용. -> 배포 'None'
+  secure: process.env.COOKIE_OPT_SECURE === "true", //로컬 실험용. -> 배포 true
+  sameSite: process.env.COOKIE_OPT_SAMESITE, //로컬 실험용. -> 배포 'None'
 };
 
 //signup - 회원가입 email/pw/name -> 새로운 유저 생성.
@@ -84,11 +80,6 @@ export async function oauthLogin(req, res, next) {
     const user = await getUserById(id); //실패 시 함수 안에서 에러 throw
     //console.log("userName: " + user.name);
     const accessToken = createToken(user);
-    const refreshToken = createToken(user, "refresh");
-
-    //성공 시 리프레시 토큰은 쿠키에 저장.
-    //(백에 저장되는 거라 자동 리프레쉬가 안되네요.)
-    res.cookie("refreshToken", refreshToken, refreshTokenCookieOptions);
 
     //액세스 토큰은 프론트 리디렉트 라우터에 쿼리로 전송. (이게 가장 현실적인 방법인 듯 합니다.)
     //프론트에서 받으면 바로 메인페이지로 페이지를 날리므로 일단 안전합니다.
