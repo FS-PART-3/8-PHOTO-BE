@@ -48,10 +48,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         code: 400,
       });
     if (listing.status !== "FOR_SALE")
-      throw Object.assign(
-        new Error("현재 구매할 수 없는 상태의 판매글입니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("현재 구매할 수 없는 상태의 판매글입니다."), { code: 400 });
     if (listing.quantity < quantity)
       throw Object.assign(new Error("재고가 부족합니다."), { code: 400 });
 
@@ -74,12 +71,9 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       }));
 
     if (!sellerSourceCard)
-      throw Object.assign(
-        new Error("판매글의 원본 포토카드를 찾을 수 없습니다."),
-        {
-          code: 500,
-        }
-      );
+      throw Object.assign(new Error("판매글의 원본 포토카드를 찾을 수 없습니다."), {
+        code: 500,
+      });
     if (sellerSourceCard.quantity < quantity)
       throw Object.assign(new Error("판매자 보유 수량이 부족합니다."), {
         code: 409,
@@ -225,8 +219,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         {
           id: randomUUID(),
           userId: listing.sellerId,
-          type:
-            listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
+          type: listingAfter.status === "SOLD_OUT" ? "SOLD_OUT" : "SALE_COMPLETED",
           payload: {
             listingId,
             transactionId: transaction.id,
@@ -264,18 +257,12 @@ export async function runCreateExchangeOfferTransaction({
       });
 
     if (listing.sellerId === offeredById) {
-      throw Object.assign(
-        new Error("자신의 판매글에는 교환을 신청할 수 없습니다."),
-        { code: 400 }
-      );
+      throw Object.assign(new Error("자신의 판매글에는 교환을 신청할 수 없습니다."), { code: 400 });
     }
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status)) {
-      throw Object.assign(
-        new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."),
-        {
-          code: 400,
-        }
-      );
+      throw Object.assign(new Error("현재 교환을 신청할 수 없는 상태의 판매글입니다."), {
+        code: 400,
+      });
     }
 
     // 2) 동일 사용자의 중복 PENDING 신청 방지
@@ -348,12 +335,8 @@ export async function updateListing({ sellerId, listingId, payload }) {
     data: {
       ...(payload.price !== undefined ? { price: payload.price } : {}),
       ...(payload.quantity !== undefined ? { quantity: payload.quantity } : {}),
-      ...(payload.preferredGrade !== undefined
-        ? { preferredGrade: payload.preferredGrade }
-        : {}),
-      ...(payload.preferredGenre !== undefined
-        ? { preferredGenre: payload.preferredGenre }
-        : {}),
+      ...(payload.preferredGrade !== undefined ? { preferredGrade: payload.preferredGrade } : {}),
+      ...(payload.preferredGenre !== undefined ? { preferredGenre: payload.preferredGenre } : {}),
       ...(payload.preferredDescription !== undefined
         ? { preferredDescription: payload.preferredDescription }
         : {}),
@@ -430,8 +413,10 @@ export async function cancelListing({ sellerId, listingId }) {
         id: randomUUID(),
         userId: sellerId,
         type: "SOLD_OUT",
-        payload: { listingId: cancelled.id },
-        message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
+        payload: {
+          listingId: cancelled.id,
+          message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
+        },
       },
     });
 
@@ -494,7 +479,7 @@ export async function getMarketplaceListings({
   take = DEFAULT_TAKE,
 }) {
   // take를 숫자로 변환
-  const parsedTake = typeof take === 'string' ? parseInt(take, 10) : take;
+  const parsedTake = typeof take === "string" ? parseInt(take, 10) : take;
   const finalTake = isNaN(parsedTake) ? DEFAULT_TAKE : parsedTake;
 
   const where = {
@@ -560,10 +545,10 @@ export async function getMyPhotoCards(
   soldOut,
   sort = "latest",
   cursor,
-  take = DEFAULT_TAKE
+  take = DEFAULT_TAKE,
 ) {
   // take를 숫자로 변환
-  const parsedTake = typeof take === 'string' ? parseInt(take, 10) : take;
+  const parsedTake = typeof take === "string" ? parseInt(take, 10) : take;
   const finalTake = isNaN(parsedTake) ? DEFAULT_TAKE : parsedTake;
 
   const where = {
