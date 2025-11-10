@@ -411,8 +411,11 @@ export async function cancelListing({ sellerId, listingId }) {
         id: randomUUID(),
         userId: sellerId,
         type: "SOLD_OUT",
-        payload: { listingId: cancelled.id },
-        message: `'${cancelledTitle}'이(가) 판매취소 되었습니다.`,
+        payload: {
+          listingId: cancelled.id,
+          message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
+        },
+
       },
     });
 
