@@ -23,14 +23,14 @@ export async function createExchangeOffer({
   offeredDescription,
   offeredPhotoId,
 }) {
-  const listing = await repo.findListingById({ where: { id: listingId } });
+  const listing = await repo.findListingById(listingId);
   if (!listing) {
     const error = new Error("유효하지 않은 listingId 입니다.");
     error.code = 400;
     throw error;
   }
 
-  const myCard = await repo.getMyPhotoCardById({ where: { id: offeredPhotoId } });
+  const myCard = await repo.getMyPhotoCardById(offeredPhotoId);
   if (!myCard) {
     const error = new Error("존재하지 않는 offeredPhotoId 입니다.");
     error.code = 400;
