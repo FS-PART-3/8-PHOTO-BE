@@ -22,13 +22,20 @@ export const createExchangeSchema = z.object({
   }),
   query: z.object({}).optional(),
 });
+
+const PreferredGradeSchema = z
+  .string()
+  .transform((v) => v?.replace(/_/g, "")) // "SUPER_RARE" -> "SUPERRARE"
+  .pipe(z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]))
+  .transform((v) => (v === "SUPERRARE" ? "SUPER_RARE" : v));
+
 export const updateListingSchema = z.object({
   params: z.object({ listingId: z.string().min(1) }),
   body: z
     .object({
       price: z.number().int().min(1).optional(),
       quantity: z.number().int().min(1).optional(),
-      preferredGrade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]).optional(),
+      preferredGrade: PreferredGradeSchema.optional(),
       preferredGenre: z.string().min(1).optional(),
       preferredDescription: z.string().min(1).optional(),
     })
