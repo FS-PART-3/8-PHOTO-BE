@@ -2,7 +2,6 @@
 import { id } from "zod/locales";
 import { prisma } from "../../config/db.js";
 import { randomUUID } from "crypto";
-import { title } from "process";
 async function getUserPointBalance(tx, userId) {
   const agg = await tx.point.aggregate({
     where: { userId },
@@ -22,7 +21,6 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
         price: true,
         quantity: true,
         status: true,
-        title: true,
         photoCards: {
           select: {
             id: true,
@@ -154,7 +152,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
       (await tx.myPhotoCard.findFirst({
         where: {
           userId: listing.sellerId,
-          listing: { some: { id: listingId } },
+          listings: { some: { id: listingId } },
         },
         select: {
           title: true,
@@ -165,6 +163,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
           description: true,
         },
       }));
+    const listingTitle = sourceCard.title ?? "해당 포토카드";
 
     if (!sourceCard)
       throw Object.assign(new Error("원본 포토카드 정보를 찾을 수 없습니다."), {
@@ -213,7 +212,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
             transactionId: transaction.id,
             quantity,
             totalAmount,
-            message: `'${listing.title}' 구매가 완료되었습니다.`,
+            message: `'${listingTitle}' 구매가 완료되었습니다.`,
           },
         },
         {
@@ -227,8 +226,8 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
             totalAmount,
             message:
               listingAfter.status === "SOLD_OUT"
-                ? `'${listing.title}'이(가) 모두 판매되어 품절되었습니다.`
-                : `'${listing.title}'이(가) 판매되었습니다.`,
+                ? `'${listingTitle}'이(가) 모두 판매되어 품절되었습니다.`
+                : `'${listingTitle}'이(가) 판매되었습니다.`,
           },
         },
       ],
@@ -367,7 +366,6 @@ export async function cancelListing({ sellerId, listingId }) {
         sellerId: true,
         status: true,
         quantity: true,
-        title: true,
         photoCards: {
           select: { id: true },
         },
@@ -406,7 +404,7 @@ export async function cancelListing({ sellerId, listingId }) {
       where: { id: listingId },
       select: { id: true, status: true, quantity: true, photoCards: { select: { id: true } } },
     });
-
+    const cancelledTitle = cancelled.photoCards?.[0]?.title ?? "해당 포토카드";
     // 4) 알림 생성
     await tx.notification.create({
       data: {
@@ -417,6 +415,7 @@ export async function cancelListing({ sellerId, listingId }) {
           listingId: cancelled.id,
           message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
         },
+
       },
     });
 

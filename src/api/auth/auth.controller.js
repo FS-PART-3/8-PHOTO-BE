@@ -3,8 +3,9 @@ import {
   refreshAccessToken,
   isValidEmail,
   isValidToken,
+  isTokenNotExpired,
 } from "../../auth/utils/token.js";
-import { getCurrentPoints } from "../points/points.repository.js";
+import { createReward, getCurrentPoints } from "../points/points.repository.js";
 import {
   createUser,
   getUser,
@@ -38,6 +39,7 @@ export async function signup(req, res, next) {
 
     //createUesr()는 user를 파라미터로 받으므로 {}로 넘겨준다.
     const result = await createUser({ name, email, password });
+    await createReward(result, 1000); // 회원가입 포인트 지급
     return res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -83,7 +85,9 @@ export async function oauthLogin(req, res, next) {
 
     //액세스 토큰은 프론트 리디렉트 라우터에 쿼리로 전송. (이게 가장 현실적인 방법인 듯 합니다.)
     //프론트에서 받으면 바로 메인페이지로 페이지를 날리므로 일단 안전합니다.
-    res.redirect(`${process.env.CORS_ORIGIN}/oauth?accessToken=${accessToken}`);
+    res.redirect(
+      `${process.env.OAUTH_REDIRECT}/oauth?accessToken=${accessToken}`
+    );
 
     // 액세스 토큰을 리턴 하는 방식이 아니라 프론트 원래 페이지로 리다이렉트를 해줘야 해서 res.json()은 없음.
   } catch (err) {
@@ -106,11 +110,19 @@ export async function refresh(req, res, next) {
   try {
     const refreshToken = req.cookies.refreshToken;
     const userId = req.auth?.userId;
-    //auth에 있으면 기존 미들웨어,
-    //없으면 passport의 jwtStrategy 미들웨어로 보고 user에서 찾음.
-
-    //jwt 검증으로 저장된 userId라서 id는 굳이 검사과정이 필요 x
-
+    //액세스 토큰 만료 시에만 리프레쉬 가능하도록 구현
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1]; // Bearer 토큰 추출
+    if (!token) {
+      const error = new Error("토큰이 요청에 포함되지 않았습니다.");
+      error.code = 401;
+      throw error;
+    }
+    if (isTokenNotExpired(token)) {
+      const error = new Error("토큰이 만료되지 않았습니다.");
+      error.code = 403;
+      throw error;
+    }
     const newAccessToken = await refreshAccessToken(userId, refreshToken);
     const newRefreshToken = createToken({ id: userId }, "refresh"); //액세스 토큰 갱신과 함께 리프레쉬 토큰도 갱신. 무한로그인 유지
     await updateUser(userId, { refreshToken: newRefreshToken });
