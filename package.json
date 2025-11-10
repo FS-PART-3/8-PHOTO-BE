@@ -10,10 +10,13 @@
     "build": "echo \"JS 프로젝트라 build 단계 없음\"",
     "lint": "eslint . --ext .js",
     "format": "prettier --write \"**/*.{js,json,md}\"",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed": "prisma db seed",
+    "studio": "prisma studio"
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma"
+    "schema": "src/prisma/schema.prisma",
+    "seed": "node src/prisma/seed.js"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -31,25 +34,35 @@
   "homepage": "https://github.com/FS-PART-3/8-PHOTO-BE#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.910.0",
-    "@prisma/client": "^6.17.1",
+    "@prisma/client": "6.15.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.18",
     "dotenv": "^17.2.3",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "express": "^5.1.0",
+    "express-jwt": "^8.5.1",
+    "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.1",
     "pino": "^10.0.0",
     "pino-pretty": "^13.1.2",
     "prettier": "^3.6.2",
-    "prisma": "^6.17.1",
+    "prisma": "6.15.0",
+    "sharp": "^0.34.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

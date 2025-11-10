@@ -1,10 +1,22 @@
 // 각자 입맛에 맞게 변경해서 사용하기.
-### 교환 제안
-POST http://localhost:4000/api/exchanges
-Authorization: Bearer {{accessToken}}
+###
+@baseUrl = http://localhost:4000/api
+@token = {accesstoken}
+@offerId = {offerId}
+
+
+# 교환 승인
+#
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/accept
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{
-  "targetProductId": "abc123",
-  "myProductId": "def456"
-}
+### 교환 거절
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/reject
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 교환 취소 
+PATCH {{baseUrl}}/marketplace/exchange-offers/{{offerId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json

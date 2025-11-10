@@ -1,2 +1,2 @@
-// import router from "./users.routes.js";
-// export default router;
+import router from "./users.routes.js";
+export default router;

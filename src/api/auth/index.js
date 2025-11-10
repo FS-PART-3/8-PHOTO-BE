@@ -1,2 +1,2 @@
-// import router from "./auth.routes.js";
-// export default router;
+import router from "./auth.routes.js";
+export default router;

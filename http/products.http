@@ -1,14 +1,40 @@
-// 각자 입맛에 맞게 변경해서 사용하기.
-### 상품 등록
-POST http://localhost:4000/api/products
-Authorization: Bearer {{accessToken}}
+@baseUrl = http://localhost:4000/api
+@listingId = listing-user1-11
+@token = {{access token}}
+
+POST {{baseUrl}}/marketplace/{{listingId}}/purchase
+# Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "title": "포토카드 A",
-  "price": 1000,
-  "description": "테스트 상품"
+
+  "quantity": 1,
+    "buyerId": "user2"
+}
+### 교환 신청 생성 (201Created)
+POST http://localhost:4000/api/marketplace/{{listingId}}/exchanges
+# Authorization: Bearer {{ACCESS_TOKEN}}
+Content-Type: application/json
+
+{
+  "offeredDescription": "동일 시리즈 카드로 교환 원해요",
+   "offeredById": "user2" 
+}
+### 판매 수정 (200 OK)
+PATCH http://localhost:4000/api/marketplace/{{listingId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "price": 1111111,
+  "quantity": 5,
+  "preferredGrade": "COMMON",
+  "preferredGenre": "도시",       
+  "preferredDescription": "가격 인하, 빠른 거래 희망"
 }
 
-### 상품 목록
-GET http://localhost:4000/api/products?page=1&orderBy=recent
+
+### 판매 내리기 (200 OK)
+PATCH http://localhost:4000/api/marketplace/{{listingId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json

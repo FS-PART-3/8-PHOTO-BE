@@ -1,7 +1,49 @@
 // 예시 코드입니다. 필요시 지우고 사용하세요.
+import { z } from "zod";
 
-// import { z } from "zod";
+export const purchaseSchema = z.object({
+  params: z.object({
+    listingId: z.string().min(1, "listingId는 필수입니다."),
+  }),
+  body: z.object({
+    quantity: z.number().int().min(1).default(1),
+    buyerId: z.string().optional(), //authGuard 미적용시 테스트용
+  }),
+  query: z.object({}).optional(),
+});
 
+export const createExchangeSchema = z.object({
+  params: z.object({
+    listingId: z.string().min(1, "listingId는 필수입니다."),
+  }),
+  body: z.object({
+    offeredDescription: z.string().min(1, "offeredDescription은 필수입니다."),
+    offeredPhotoId: z.string().min(1, "offeredPhotoId는 필수입니다."),
+  }),
+  query: z.object({}).optional(),
+});
+
+const PreferredGradeSchema = z
+  .string()
+  .transform((v) => v?.replace(/_/g, "")) // "SUPER_RARE" -> "SUPERRARE"
+  .pipe(z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]))
+  .transform((v) => (v === "SUPERRARE" ? "SUPER_RARE" : v));
+
+export const updateListingSchema = z.object({
+  params: z.object({ listingId: z.string().min(1) }),
+  body: z
+    .object({
+      price: z.number().int().min(1).optional(),
+      quantity: z.number().int().min(1).optional(),
+      preferredGrade: PreferredGradeSchema.optional(),
+      preferredGenre: z.string().min(1).optional(),
+      preferredDescription: z.string().min(1).optional(),
+    })
+    .refine((b) => Object.keys(b).length > 0, {
+      message: "수정할 필드를 한 개 이상 포함해야 합니다.",
+    }),
+  query: z.object({}).optional(),
+});
 // export const listSchema = z.object({
 //   query: z.object({
 //     page: z.coerce.number().int().min(0).default(0).optional(),
@@ -33,3 +75,17 @@
 //   params: z.object({}).optional(),
 //   query: z.object({}).optional(),
 // });
+
+export const createListingSchema = z.object({
+  body: z.object({
+    myPhotoCardId: z.string().min(1, "myPhotoCardId는 필수입니다."),
+    price: z.number().int().min(1, "price는 1 이상의 숫자여야 합니다."),
+    quantity: z.number().int().min(1, "quantity는 1 이상의 숫자여야 합니다."),
+    preferredGrade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]),
+    preferredGenre: z.enum(["풍경", "인물", "도시", "자연"]),
+    preferredDescription: z.string().max(500).min(1, "preferredDescription은 필수입니다."),
+    sellerId: z.string().optional(), // authGuard 미적용 시 테스트용 .min(1, "sellerId는 필수입니다.")
+  }),
+  params: z.object({}).optional(),
+  query: z.object({}).optional(),
+});
