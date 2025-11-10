@@ -1,9 +1,6 @@
 import { prisma } from "../../config/db.js";
 import { randomUUID } from "crypto";
-export async function runApproveExchangeOfferTransaction({
-  sellerId,
-  offerId,
-}) {
+export async function runApproveExchangeOfferTransaction({ sellerId, offerId }) {
   return await prisma.$transaction(async (tx) => {
     // 1) 교환 신청 조회
     const offer = await tx.exchangeOffer.findUnique({
@@ -48,10 +45,7 @@ export async function runApproveExchangeOfferTransaction({
         code: 404,
       });
     if (listing.sellerId !== sellerId)
-      throw Object.assign(
-        new Error("해당 판매글의 판매자만 승인할 수 있습니다."),
-        { code: 403 }
-      );
+      throw Object.assign(new Error("해당 판매글의 판매자만 승인할 수 있습니다."), { code: 403 });
     if (["CANCELLED", "SOLD_OUT"].includes(listing.status))
       throw Object.assign(new Error("이미 종료된 판매글입니다."), {
         code: 400,
@@ -59,10 +53,7 @@ export async function runApproveExchangeOfferTransaction({
 
     const sourceCard = listing.photoCards[0];
     if (!sourceCard)
-      throw Object.assign(
-        new Error("판매글에 연결된 원본 포토카드가 없습니다."),
-        { code: 500 }
-      );
+      throw Object.assign(new Error("판매글에 연결된 원본 포토카드가 없습니다."), { code: 500 });
     if (sourceCard.userId !== listing.sellerId)
       throw Object.assign(new Error("판매자 소유의 포토카드가 아닙니다."), {
         code: 400,
@@ -138,20 +129,18 @@ export async function runApproveExchangeOfferTransaction({
       where: { id: listing.id },
       select: { id: true, status: true, quantity: true },
     });
-    if (!listingAfterQty)
-      throw Object.assign(new Error("판매글 조회 오류"), { code: 500 });
+    if (!listingAfterQty) throw Object.assign(new Error("판매글 조회 오류"), { code: 500 });
 
     let listingAfter = listingAfterQty;
-    if (
-      listingAfterQty.quantity <= 0 &&
-      listingAfterQty.status !== "SOLD_OUT"
-    ) {
+    if (listingAfterQty.quantity <= 0 && listingAfterQty.status !== "SOLD_OUT") {
       listingAfter = await tx.listing.update({
         where: { id: listing.id },
         data: { status: "SOLD_OUT" },
         select: { id: true, status: true, quantity: true },
       });
     }
+    const listingTitle = sourceCard.title ?? "해당 포토카드";
+
     // 7) 알림 생성
     await tx.notification.create({
       data: {
@@ -161,7 +150,7 @@ export async function runApproveExchangeOfferTransaction({
         payload: {
           listingId: listing.id,
           offerId: offer.id,
-          message: `${listing.title} 교환 요청이 승인되었습니다.`,
+          message: `${listingTitle} 교환 요청이 승인되었습니다.`,
         },
       },
     });
@@ -193,17 +182,19 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
     // 2) 판매글 조회 + 권한 확인
     const listing = await tx.listing.findUnique({
       where: { id: offer.listingId },
-      select: { id: true, sellerId: true, status: true },
+      select: {
+        id: true,
+        sellerId: true,
+        status: true,
+        photoCards: { select: { title: true } },
+      },
     });
     if (!listing)
       throw Object.assign(new Error("관련 판매글이 존재하지 않습니다."), {
         code: 404,
       });
     if (listing.sellerId !== sellerId)
-      throw Object.assign(
-        new Error("해당 판매글의 판매자만 거절할 수 있습니다."),
-        { code: 403 }
-      );
+      throw Object.assign(new Error("해당 판매글의 판매자만 거절할 수 있습니다."), { code: 403 });
 
     // 3) 상태 확인 (PENDING만 거절 가능)
     const updated = await tx.exchangeOffer.updateMany({
@@ -215,7 +206,7 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
         code: 400,
       });
     }
-
+    const listingTitle = listing.photoCards?.[0]?.title ?? "해당 포토카드";
     // 4) 알림 생성
     await tx.notification.create({
       data: {
@@ -225,7 +216,7 @@ export async function runRejectExchangeOfferTransaction({ sellerId, offerId }) {
         payload: {
           listingId: listing.id,
           offerId: offer.id,
-          message: `${listing.title} 교환 요청이 거절되었습니다.`,
+          message: `${listingTitle} 교환 요청이 거절되었습니다.`,
         },
       },
     });
@@ -302,10 +293,7 @@ export async function findOffersForSeller({ listingId, sellerId }) {
   });
 }
 // 교환 취소
-export async function runCancelExchangeOfferTransaction({
-  offeredById,
-  offerId,
-}) {
+export async function runCancelExchangeOfferTransaction({ offeredById, offerId }) {
   return await prisma.$transaction(async (tx) => {
     // 1) 오퍼 조회
     const offer = await tx.exchangeOffer.findUnique({
@@ -333,11 +321,11 @@ export async function runCancelExchangeOfferTransaction({
         code: 400,
       });
     }
-
+    const listingTitle = listing.photoCards?.[0]?.title ?? "해당 포토카드";
     // 4) 알림 생성
     const listing = await tx.listing.findUnique({
       where: { id: offer.listingId },
-      select: { id: true, sellerId: true, title: true },
+      select: { id: true, sellerId: true, photoCards: { select: { title: true } } },
     });
     if (listing) {
       await tx.notification.create({
@@ -349,7 +337,7 @@ export async function runCancelExchangeOfferTransaction({
             listingId: listing.id,
             offerId: offer.id,
             reason: "CANCELLED_BY_OFFERER",
-            message: `교환 신청자가 '${listing.title}' 교환 요청을 취소했습니다.`,
+            message: `교환 신청자가 '${listingTitle}' 교환 요청을 취소했습니다.`,
           },
         },
       });
