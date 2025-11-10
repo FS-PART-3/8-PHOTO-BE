@@ -3,6 +3,7 @@ import {
   refreshAccessToken,
   isValidEmail,
   isValidToken,
+  isTokenNotExpired,
 } from "../../auth/utils/token.js";
 import { createReward, getCurrentPoints } from "../points/points.repository.js";
 import {
@@ -117,7 +118,7 @@ export async function refresh(req, res, next) {
       error.code = 401;
       throw error;
     }
-    if (isValidToken(token)) {
+    if (isTokenNotExpired(token)) {
       const error = new Error("토큰이 만료되지 않았습니다.");
       error.code = 403;
       throw error;
