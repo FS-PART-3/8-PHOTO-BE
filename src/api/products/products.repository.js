@@ -163,7 +163,7 @@ export async function runPurchaseTransaction({ buyerId, listingId, quantity }) {
           description: true,
         },
       }));
-    const listingTitle = sourceCard.title ?? "해당 포토카드";
+    const listingTitle = listing.photoCards?.[0]?.title ?? "해당 포토카드";
 
     if (!sourceCard)
       throw Object.assign(new Error("원본 포토카드 정보를 찾을 수 없습니다."), {
@@ -248,7 +248,7 @@ export async function runCreateExchangeOfferTransaction({
     // 1) 판매글 조회
     const listing = await tx.listing.findUnique({
       where: { id: listingId },
-      select: { id: true, sellerId: true, status: true, title: true },
+      select: { id: true, sellerId: true, status: true, photoCards: { select: { title: true } } },
     });
     if (!listing)
       throw Object.assign(new Error("존재하지 않는 판매글입니다."), {
@@ -285,7 +285,7 @@ export async function runCreateExchangeOfferTransaction({
         offeredDescription,
       },
     });
-
+    const listingTitle = listing.photoCards?.[0]?.title ?? "해당 포토카드";
     // 4) 알림: 판매자에게 교환 제안
     await tx.notification.create({
       data: {
@@ -297,7 +297,7 @@ export async function runCreateExchangeOfferTransaction({
           offerId: offer.id,
           offeredById,
           offeredDescription,
-          message: `새로운 교환 제안이 도착했습니다. '${listing.title}'에 대한 교환 요청을 확인해보세요.`,
+          message: `새로운 교환 제안이 도착했습니다. '${listingTitle}'에 대한 교환 요청을 확인해보세요.`,
         },
       },
     });
@@ -367,7 +367,7 @@ export async function cancelListing({ sellerId, listingId }) {
         status: true,
         quantity: true,
         photoCards: {
-          select: { id: true },
+          select: { id: true, title: true },
         },
       },
     });
@@ -404,7 +404,7 @@ export async function cancelListing({ sellerId, listingId }) {
       where: { id: listingId },
       select: { id: true, status: true, quantity: true, photoCards: { select: { id: true } } },
     });
-    const cancelledTitle = cancelled.photoCards?.[0]?.title ?? "해당 포토카드";
+    const listingTitle = listing.photoCards?.[0]?.title ?? "해당 포토카드";
     // 4) 알림 생성
     await tx.notification.create({
       data: {
@@ -413,9 +413,8 @@ export async function cancelListing({ sellerId, listingId }) {
         type: "SOLD_OUT",
         payload: {
           listingId: cancelled.id,
-          message: `'${cancelled.title}'이(가) 판매취소 되었습니다.`,
+          message: `'${listingTitle}'이(가) 판매취소 되었습니다.`,
         },
-
       },
     });
 
