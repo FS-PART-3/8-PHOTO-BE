@@ -24,13 +24,24 @@ export async function createExchangeOffer({
   offeredPhotoId,
 }) {
   const listing = await prisma.listing.findUnique({ where: { id: listingId } });
-  if (!listing) throw new AppError(400, "유효하지 않은 listingId 입니다.");
+  if (!listing) {
+    const error = new Error("유효하지 않은 listingId 입니다.");
+    error.code = 400;
+    throw error;
+  }
 
   const myCard = await prisma.myPhotoCard.findUnique({ where: { id: offeredPhotoId } });
-  if (!myCard) throw new AppError(400, "존재하지 않는 offeredPhotoId 입니다.");
+  if (!myCard) {
+    const error = new Error("존재하지 않는 offeredPhotoId 입니다.");
+    error.code = 400;
+    throw error;
+  }
+  if (myCard.userId !== userId) {
+    const error = new Error("본인 소유 카드만 교환에 사용할 수 있습니다.");
+    error.code = 403;
+    throw error;
+  }
 
-  if (myCard.userId !== userId)
-    throw new AppError(400, "본인 소유 카드만 교환에 사용할 수 있습니다.");
   const offer = await repo.runCreateExchangeOfferTransaction({
     offeredById: userId,
     listingId,
