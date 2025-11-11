@@ -8,11 +8,7 @@ const googleStrategyOptions = {
   callbackURL: "/api/auth/google/callback",
 };
 
-async function verify(accessToken, refreshToken, profile, done) {
-  // console.log("유저 이름: " + profile.displayName);
-  // console.log("유저 email: " + profile.emails[0].value);
-  // console.log("유저 id: " + profile.id);
-  // console.log("유저 프로바이더: " + profile.provider);
+async function verify(profile, done) {
   const user = await oauthCreateOrUpdate(
     profile.provider,
     profile.id,
