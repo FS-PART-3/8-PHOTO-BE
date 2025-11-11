@@ -1,11 +1,11 @@
 import { Router } from "express";
 import * as controller from "./gallery.controller.js";
-import { validate } from "../../middlewares/validate.middleware.js";
+import { validate } from "../../middlewares/validateMiddleware.js";
 import {
   getMyGallerySchema,
   createPhotoCardSchema,
 } from "./validators/gallery.validators.js";
-import { upload } from "../../middlewares/upload.middleware.js";
+import { upload } from "../../middlewares/uploadMiddleware.js";
 import { verifyAccessToken } from "../../middlewares/authGuard.js";
 import "./docs/gallery.swagger.js";
 
