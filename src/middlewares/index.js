@@ -4,4 +4,4 @@ export { asyncHandler } from "./asyncHandler.js";
 // export { authGuard } from "./authGuard.js";
 export { upload } from "./uploadMiddleware.js";
 export { validate } from "./validateMiddleware.js";
-export { checkPhotoCardQuantity } from "./checkQuantity.middleware.js";
+export { checkPhotoCardQuantity } from "./checkQuantityMiddleware.js";

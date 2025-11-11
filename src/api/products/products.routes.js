@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyAccessToken } from "../../middlewares/authGuard.js";
 import { validate } from "../../middlewares/validateMiddleware.js";
-import { checkPhotoCardQuantity } from "../../middlewares/checkQuantity.middleware.js";
+import { checkPhotoCardQuantity } from "../../middlewares/checkQuantityMiddleware.js";
 import {
   purchaseSchema,
   createExchangeSchema,
