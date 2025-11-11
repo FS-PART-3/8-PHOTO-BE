@@ -43,10 +43,16 @@ export async function getUser(email, password) {
       error.code = 401;
       throw error;
     }
-    await verifyPassword(password, user.password);
+    if (await verifyPassword(password, user.password)) {
+    } else {
+      const error = new Error("이메일 또는 비밀번호가 불일치합니다");
+      error.code = 403;
+      throw error;
+    }
     return filterSensitiveUserData(user);
   } catch (error) {
     if (error.code === 401) throw error;
+    if (error.code === 403) throw error;
     const customError = new Error("데이터베이스 작업 중 오류가 발생했습니다");
     customError.code = 500;
     throw customError;
@@ -79,10 +85,16 @@ export async function checkPassword(userId, password) {
       error.code = 401;
       throw error;
     }
-    await verifyPassword(password, user.password);
+    if (await verifyPassword(password, user.password)) {
+    } else {
+      const error = new Error("이메일 또는 비밀번호가 불일치합니다");
+      error.code = 403;
+      throw error;
+    }
     return filterSensitiveUserData(user);
   } catch (error) {
     if (error.code === 401) throw error;
+    if (error.code === 409) throw error;
     const customError = new Error("데이터베이스 작업 중 오류가 발생했습니다");
     customError.code = 500;
     throw customError;
