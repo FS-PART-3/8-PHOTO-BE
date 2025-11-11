@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as controller from "./notifications.controller.js";
 import { verifyAccessToken } from "../../middlewares/authGuard.js";
-import { validate } from "../../middlewares/validate.middleware.js";
+import { validate } from "../../middlewares/validateMiddleware.js";
 import {
   getNotificationsSchema,
   readNotificationSchema,
