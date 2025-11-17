@@ -81,9 +81,12 @@ export const createListingSchema = z.object({
     myPhotoCardId: z.string().min(1, "myPhotoCardId는 필수입니다."),
     price: z.number().int().min(1, "price는 1 이상의 숫자여야 합니다."),
     quantity: z.number().int().min(1, "quantity는 1 이상의 숫자여야 합니다."),
-    preferredGrade: z.enum(["COMMON", "RARE", "SUPERRARE", "LEGENDARY"]),
+    preferredGrade: PreferredGradeSchema.optional(),
     preferredGenre: z.enum(["풍경", "인물", "도시", "자연"]),
-    preferredDescription: z.string().max(500).min(1, "preferredDescription은 필수입니다."),
+    preferredDescription: z
+      .string()
+      .max(500)
+      .min(1, "preferredDescription은 필수입니다."),
     sellerId: z.string().optional(), // authGuard 미적용 시 테스트용 .min(1, "sellerId는 필수입니다.")
   }),
   params: z.object({}).optional(),
